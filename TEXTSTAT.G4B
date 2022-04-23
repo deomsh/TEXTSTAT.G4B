@@ -1,0 +1,167 @@
+!BAT
+#-#+ TEXTSTAT.G4B v0.4 (20220423), by deomsh
+#-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at end-of-line
+#-#+ Use: TEXTSTAT.G4B FILE
+#-#+ Remark: if FILE contains spaces use "FILE"
+::----------------------------------------------------------------------------------------------------------------------------
+:: MAIN ROUTINE
+::----------------------------------------------------------------------------------------------------------------------------
+if "%~1"=="" && endlocal && echo && echo Use: TEXTSTAT.G4B FILE  or TEXTSTAT.G4B "FILE" && echo && goto :eof
+setlocal && set *
+debug msg=0
+set device=%~d1
+set "path=%~p1"
+set "file=%~nx1"
+set "pathfile=%path%%%file%" &; call Fn.11 "%pathfile%" " " && set pathfile=/"%pathfile:~1%"
+set "filename=%device%%%pathfile%"
+if not exist %filename% && endlocal && echo %~nx2 does not exist (or is a Directory - not on NTFS)! && echo && goto :eof
+cat --length=0 %filename% > nul ;; set /a filelen=%@retval%
+call Fn.11 %filename% " " && echo && echo %device%/%pathfile:~2,-1% && echo Size:              %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && goto :eof
+#ORG#call Fn.11 %filename% " " && echo && echo %device%/%path:~2,-2%/%file:~1,-1% && echo Size: %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && goto :eof
+call Fn.11 %filename% " " || echo && echo %filename% && echo Size:              %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && goto :eof
+if %filelen%==0 && endlocal && echo %~nx2 is a Zero-byte File (or possibly a Directory on NTFS)! && echo && goto :eof
+set mdbase=0x3000 && set readsect=511 &; set FILE=(md)%mdbase%+%readsect% &; echo -n > %FILE%
+raw dd if=%filename% of=%FILE% bs=1 count=%filelen% > nul
+call :CntZeros dummy %FILE% "dos" %filelen% &; if exist result && set zeros=%result% && set result=
+if %zeros%>=1 && echo Binary File, contains %zeros% zeros before last End Of Line marker && echo && endlocal && goto :eof
+call :CntLine %FILE% "dos" %filelen% &; if exist result && set dos=%result% && set result=
+call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
+call :CntLine %FILE% "mac" %filelen% &; if exist result && set mac=%result% && set result=
+if %dos%>=1 && if %unix%==%mac% && echo Number of Lines:  %dos% && echo EndOfLine marker: CR+LF &; if %zeros%==0 && echo Text File Type:   MS-DOS && set texttype=dos
+if %dos%>=1 && if not %unix%==%mac% && echo Number of Lines:  %dos% EOL CR+LF && echo Number of Lines:  %unix% EOL LF && echo Number of Lines:  %mac% EOL CR && echo Text File Type:  mixed EndOfLine markers
+if %dos%==0 && if %unix%>=1 && if %mac%==0 && echo Number of Lines:  %unix% && echo EndOfLine marker: LF && echo Text File Type:   Unix && set texttype=unix
+if %dos%==0 && if %unix%==0 && if %mac%>=1 && echo Number of Lines:  %mac% && echo EndOfLine marker: CR && echo Text File Type:   Mac && set texttype=mac
+if %dos%==0 && if %unix%>=1 && if %mac%>=1 && echo Number of Lines:   %unix% EOL LF && echo Number of Lines:   %mac% EOL CR && echo Text File Type:    Mixed EndOfLine markers
+call :CntLabel %FILE% "unix" %filelen% &; if exist result && set doslabel=%result% && set result=
+call :CntLabel %FILE% "mac" %filelen% &; if exist result && set maclabel=%result% && set result=
+if exist doslabel && if not exist maclabel && echo Number of Labels: %doslabel%
+if not exist doslabel && if exist maclabel && echo Number of Labels: %maclabel%
+if exist doslabel && if exist maclabel && set /a labels=%doslabel%+%maclabel% &; echo Number of Labels:  %labels%
+call :CntRemarkLine %FILE% "#" %filelen% &; if exist result && echo Remark "#" count:  %result% at begin of line && set result=
+call :CntRemark %FILE% "#" %filelen% &; if exist result && echo Remark "#" count:  %result% not at begin of line && set result=
+call :CntRemarkLine %FILE% "::" %filelen% &; if exist result && echo Remark "::" count: %result% at begin of line && set result=
+call :CntRemark %FILE% "::" %filelen% &; if exist result && echo Remark "::" count: %result% not at begin of line && set result=
+call :CntRemarkLine %FILE% ";" %filelen% &; if exist result && echo Remark ";" count:  %result% at begin of line && set result=
+call :CntRemark %FILE% ";" %filelen% &; if exist result && echo Remark ";" count:  %result% not at begin of line && set result=
+call :CntRemarkLine %FILE% "rem" %filelen% &; if exist result && echo Remark REM count: %result% at begin of line && set result=
+call :CntRemark %FILE% "rem" %filelen% &; if exist result && echo Remark REM count: %result% not at begin of line && set result=
+call :CntSpaceEOL %FILE% "dos" %filelen% &; if exist result && echo Space before EOL:  Line(s) %result% && set result=
+call :CntSpaceEOL %FILE% "unix" %filelen% &; if exist result && echo Space before EOL:  Line(s) %result% && set result=
+if exist texttype && call :MaxLen %FILE% "%texttype%" &; if exist result && echo Longest Line:     %result% chars && set result=
+echo
+endlocal && set result=%result%
+debug msg=3
+goto :eof
+::----------------------------------------------------------------------------------------------------------------------------
+:: SUB-ROUTINES
+::----------------------------------------------------------------------------------------------------------------------------
+:CntLabel
+#-#+ Function: count number of labels; Argument: FILE; Optional: dos or mac
+setlocal && set *
+set FILE=%~1
+if not /i "%~2"=="mac" && set EOL=\x0A
+if /i "%~2"=="mac" && set EOL=\x0D
+cat --locate=%EOL%\x3A --length=%~3 %FILE% > nul &; set /a count1=%@retval%
+cat --locate=%EOL%\x3A\x3A --length=%~3 %FILE% > nul &; set /a count2=%@retval%
+set result=%count1% && if exist count2 && set /a result=%count1%-%count2%
+if %result%==0 && set result=
+endlocal && set result=%result%
+goto :eof
+
+:CntLine
+#-#+ Count lines in textfile; Argument: FILE; Optional: dos|unix|mac; Default: dos
+setlocal && set *
+set FILE=%~1
+if /i "%~2"=="dos" && set EOL=\x0D\x0A &; cat --locate=%EOL% --length=%~3 %FILE% > nul &; set /a result=%@retval% > nul
+if /i "%~2"=="unix" && set EOL=\x0A &; cat --locate=%EOL% --length=%~3 %FILE% > nul &; set /a result=%@retval% > nul
+if /i "%~2"=="mac" && set EOL=\x0D &; cat --locate=%EOL% --length=%~3 %FILE% > nul &; set /a result=%@retval% > nul
+if not exist result && set /a result=0
+endlocal && set result=%result%
+#debug msg=3
+goto :eof
+
+:CntSpaceEOL
+#-#+ CntSpaceEOL <FILE> <dos|unix|mac>
+#-# Count number of lines in textfile with space directly before EOL
+#-# Mandatory Arguments: FILE dos|unix|mac
+#-# Remarks: dos|unix|mac = specific EOL like 0D0A=dos, 0A=unix, 0D=(old)mac
+#-# remarks not at the beginning of a line counted with preceding space only
+setlocal && set *
+set FILE=%~1
+if /i %~2==dos && set EOL=\x0D\x0A && set EOLlen=2
+if /i %~2==unix && set EOL=\x0A && set EOLlen=1
+if /i %~2==mac && set EOL=\x0D && set EOLlen=1
+cat --locate=\x20%EOL% --length=%~3 %FILE% > nul &; set /a result=%@retval%
+if not %result%>=1 && goto :EndCntSpaceEOL
+set skipEOL=0 && set c=%result% && set result=
+:LoopCntSpaceEOL
+cat --skip=%skipEOL% --locate=\x20%EOL% --number=1 --length=%~3 %FILE% > nul &; set /a linelen=%?%+2+%EOLlen%
+if exist linelen && cat --locate=%EOL% --length=%linelen% %FILE% > nul &; set /a linenum=%@retval%
+set /a c=%c%-1
+set result=%result%%%linenum%,
+#echo c=%c% result=%result% skipEOL=%skipEOL% linelen=%linelen% linenum=%linenum%
+if %c%>=1 && if exist linelen && set /a skipEOL=%linelen%+1 && set linenum= && set linelen= && goto :LoopCntSpaceEOL
+#cat --locate="\x0D%~3" %FILE% > nul &; set /a result=%result%+%@retval%
+#cat --locate="\x20%~3" %FILE% > nul &; set /a result=%result%+%@retval%
+if %result:~-1,1%==, && set result=%result:~0,-1%
+:EndCntSpaceEOL
+endlocal && set result=%result%
+goto :eof
+
+:CntRemarkLine
+#-#+ CntRemarkLine <FILE> <"remark">
+#-# Count remarks in textfile
+#-# Mandatory Arguments: FILE "remark"
+#-# Remarks: "remark" = specific remark-char(s): if not at beginning of line '#' and '::' with preceding space only, and ';' and 'rem' with preceding AND trailing space only
+setlocal && set *
+set FILE=%~1
+cat --locate="\x0A%~2" --length=%~3 %FILE% > nul ;; set /a result=%@retval%
+cat --locate="\x0D%~2" --length=%~3 %FILE% > nul ;; set /a result=%result%+%@retval%
+if %result%==0 && set result=
+endlocal && set result=%result%
+goto :eof
+
+:CntRemark
+#-#+ CntRemarkLine <FILE> <"remark">
+#-# Count remarks in textfile
+#-# Mandatory Arguments: FILE "remark"
+#-# Remarks: "remark" = specific remark-char(s): if not at beginning of line '#' and '::' with preceding space only, and ';' and 'rem' with preceding AND trailing space only
+setlocal && set *
+set FILE=%~1
+if not %~2==# if not %~2==:: |; cat --locate="\x20%~2" --length=%~3 %FILE% > nul &; set /a result=%@retval%
+if not exist result && set result=0
+if not %~2==; if not /i %~2==rem |; cat --locatei="\x20%~2\x20" --length=%~3 %FILE% > nul &; set /a result=%result%+%@retval%
+if %result%==0 && set result=
+endlocal && set result=%result%
+goto :eof
+
+:CntZeros
+#-#+ CntZeros <FILE> <"remark">
+#-# Remarks: "remark" = specific remark-char(s)
+#-# remarks not at the beginning of a line counted with preceding space only
+setlocal && set *
+set FILE=%~1
+cat --locate=\x0A --length=%~3 %FILE% > nul &; set /a unix=%?%+1
+cat --locate=\x0D --length=%~3 %FILE% > nul &; set /a mac=%?%+1
+if not exist mac &; if %unix%<=%~3 && set lastEOL=%unix% ! set lastEOL=%~3
+if exist mac && if exist unix &; if %unix%>=%mac% && if %unix%<=%~3 && set lastEOL=%unix% ! if not %unix%>=%mac% && if %mac%<=%~3 && set lastEOL=%mac% ! set lastEOL=%~3
+if not exist unix &; if %mac%<=%~3 && set lastEOL=%mac% ! set lastEOL=%~4
+cat --locate=\x00 --length=%lastEOL% %FILE% > nul ;; set /a result=%@retval%
+endlocal && set result=%result%
+goto :eof
+
+:MaxLen
+setlocal && set *
+set FILE=%~1
+if /i %~2==dos && set EOL=\x0D\x0A ! if /i %~2==unix && set EOL=\x0A ! if /i %~2==mac && set EOL=\x0D ! endlocal && set result= && goto :eof
+cat --locate=%EOL% %FILE% > nul || endlocal && set result= && goto :eof
+if %EOL%==\x0D\x0A && set add=2 ! set add=1
+set skip=0
+set maxlen=0
+:maxlenloop
+cat --skip=%skip% --locate=%EOL% --number=1 %FILE% > nul &; set length=%?% > nul &; if exist length && set /a length=%length%-%skip% > nul
+if exist length && if not %length%<=%maxlen% && set maxlen=%length%
+if exist length && set /a skip=%skip%+%length%+%add% > nul && set length= && goto :maxlenloop
+if exist maxlen && set result=%maxlen% ! set result=
+endlocal && set result=%result%
+goto :eof
