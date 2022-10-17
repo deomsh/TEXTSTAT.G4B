@@ -3,7 +3,7 @@
 TEXTSTAT.G4B v0.6 (20221017), by deomsh
 
 Function: 
-count zeros before last EOL
+detect zeros before last EOL
 count lines (with EOL & Text-type)
 count labels
 count remark(ed)-lines
