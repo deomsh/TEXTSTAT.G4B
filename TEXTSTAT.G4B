@@ -1,5 +1,5 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.6 (20221017), by deomsh
+#-#+ TEXTSTAT.G4B v0.6.1 (20221021), by deomsh
 #-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at end-of-line, count chars of longest line, count phrases with switch ["]/COUNT[C]:phrase["] (COUNTC is case-sensitive)
 #-#+ Use: TEXTSTAT.G4B [switch] FILE
 #-#+ Remark: if FILE contains spaces use "FILE", same for "switch"
@@ -8,10 +8,11 @@
 ::----------------------------------------------------------------------------------------------------------------------------
 if "%~1"=="" && goto :help
 if "%~1"=="/?" && goto :help
-#ORG#if "%~1"=="" && endlocal && echo && echo Use: TEXTSTAT.G4B FILE  or TEXTSTAT.G4B "FILE" && echo && goto :eof
 setlocal && set *
-debug msg=0
-set "ARG=%~1" &; if /i "%ARG:~0,7%"=="/COUNT:" && set "COUNT=%ARG:~7%" && set i=i && shift ! if /i "%ARG:~0,8%"=="/COUNTC:" && set "COUNT=%ARG:~8%" && shift
+debug 1 && debug msg=0
+set "ARG=%~1" &; if /i "%ARG:~0,8%"=="/MDBASE:" && set "MDBASE=%ARG:~8%" && shift && set ARG= ! if /i "%ARG:~0,7%"=="MDBASE:" && set "MDBASE=%ARG:~7%" && shift && set ARG=
+set "ARG=%~1" &; if /i "%ARG:~0,7%"=="/COUNT:" && set "COUNT=%ARG:~7%" && set i=i && shift ! if /i "%ARG:~0,6%"=="COUNT:" && set "COUNT=%ARG:~6%" && set i=i && shift ! if /i "%ARG:~0,8%"=="/COUNTC:" && set "COUNT=%ARG:~8%" && shift ! if /i "%ARG:~0,7%"=="COUNTC:" && set "COUNT=%ARG:~7%" && shift
+set "ARG=%~1" &; if /i "%ARG:~0,8%"=="/MDBASE:" && set "MDBASE=%ARG:~8%" && shift ! set "ARG=%~1" &; if /i "%ARG:~0,7%"=="MDBASE:" && set "MDBASE=%ARG:~7%" && shift
 if exist ARG && if "%~1"=="" && endlocal && echo Argument FILE is missing && debug msg=3 && goto :eof ! set ARG=
 set device=%~d1 &; if %device%==(md) && endlocal && echo FILE is an md-device, use full DEVICE/PATH && debug msg=3 && goto :eof
 set "path=%~p1"
@@ -21,24 +22,20 @@ set "filename=%device%%%pathfile%"
 if not exist %filename% && endlocal && echo '%~nx1' does not exist (or is a Directory - not on NTFS)! && echo && debug msg=3 && goto :eof
 cat --length=0 %filename% > nul ;; set /a filelen=%@retval%
 call Fn.11 %filename% " " && if not exist COUNT && echo && echo %device%/%pathfile:~2,-1% && echo Size               %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && debug msg=3 && goto :eof
-#GOOD#call Fn.11 %filename% " " && echo && echo %device%/%pathfile:~2,-1% && echo Size:              %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && debug msg=3 && goto :eof
-#ORG#call Fn.11 %filename% " " && echo && echo %device%/%path:~2,-2%/%file:~1,-1% && echo Size: %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && debug msg=3 && goto :eof
 call Fn.11 %filename% " " || if not exist COUNT && echo && echo %filename% && echo Size               %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && debug msg=3 && goto :eof
-#GOOD#call Fn.11 %filename% " " || echo && echo %filename% && echo Size:              %filelen% bytes && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported! && debug msg=3 && goto :eof
 if %filelen%==0 && endlocal && echo %~nx2 is a Zero-byte File (or possibly a Directory on NTFS)! && echo && debug msg=3 && goto :eof
-set mdbase=0x3000 && set readsect=511 &; set FILE=(md)%mdbase%+%readsect% &; echo -n > %FILE%
+if exist MDBASE && set mdbase=%MDBASE% && set readsect=511 && set MDBASE= ! set mdbase=0x3000 && set readsect=511 &; set FILE=(md)%mdbase%+%readsect% &; echo -n > %FILE%
+#set
 raw dd if=%filename% of=%FILE% bs=1 count=%filelen% > nul
 call :CntZeros dummy %FILE% "dos" %filelen% &; if exist result && set zeros=%result% && set result=
 if %zeros%>=1 && echo Binary File, contains %zeros% zeros before last End Of Line marker && echo && endlocal && debug msg=3 && goto :eof
-if exist COUNT && goto :count
+if exist COUNT && call :count &; endlocal && debug 1 && debug msg=3 && goto :eof
 call :CntLine %FILE% "dos" %filelen% &; if exist result && set dos=%result% && set result=
 call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
 call :CntLine %FILE% "mac" %filelen% &; if exist result && set mac=%result% && set result=
 if %dos%>=1 && if %unix%==%dos% && if %unix%==%mac% && echo Number of Lines    %dos% && echo EndOfLine marker   CR+LF (0D0A) &; if %zeros%==0 && echo Text File Type     MS-DOS && set texttype=dos
-#ORG#if %dos%>=1 && if %unix%==%mac% && echo Number of Lines:   %dos% && echo EndOfLine marker:  CR+LF (0D0A) &; if %zeros%==0 && echo Text File Type:    MS-DOS && set texttype=dos
 if %dos%>=1 && if not %unix%==%mac% && if %dos%==%mac% && echo Number of Lines    %dos% EOL CR+LF (0D0A) && echo Number of Lines    %unix% EOL LF (0A) && echo Text File Type     Mixed EndOfLine markers
 if %dos%>=1 && if not %unix%==%mac% && if not %dos%==%mac% &; if not %dos%<=%mac% && set mac=0 ! set /a mac=%mac%-%dos% &; echo Number of Lines    %dos% EOL CR+LF (0D0A) && echo Number of Lines    %unix% EOL LF (0A) && echo Number of Lines    %mac% EOL CR (0D) && echo Text File Type     Mixed EndOfLine markers
-#ORG#if %dos%>=1 && if not %unix%==%mac% && echo Number of Lines:   %dos% EOL CR+LF (0D0A) && echo Number of Lines:   %unix% EOL LF (0D) && echo Number of Lines :   %mac% EOL CR (0D) && echo Text File Type:    Mixed EndOfLine markers
 if %dos%==0 && if %unix%>=1 && if %mac%==0 && echo Number of Lines    %unix% && echo EndOfLine marker   LF (0A) && echo Text File Type     Unix && set texttype=unix
 if %dos%==0 && if %unix%==0 && if %mac%>=1 && echo Number of Lines    %mac% && echo EndOfLine marker   CR (0D) && echo Text File Type     Mac && set texttype=mac
 if %dos%==0 && if %unix%>=1 && if %mac%>=1 && echo Number of Lines    %unix% EOL LF (0A) && echo Number of Lines    %mac% EOL CR (0D) && echo Text File Type     Mixed EndOfLine markers
@@ -87,7 +84,6 @@ if /i "%~2"=="unix" && set EOL=\x0A &; cat --locate=%EOL% --length=%~3 %FILE% > 
 if /i "%~2"=="mac" && set EOL=\x0D &; cat --locate=%EOL% --length=%~3 %FILE% > nul &; set /a result=%@retval% > nul
 if not exist result && set /a result=0
 endlocal && set result=%result%
-#debug msg=3
 goto :eof
 
 :CntSpaceEOL
@@ -109,10 +105,7 @@ cat --skip=%skipEOL% --locate=\x20%EOL% --number=1 --length=%~3 %FILE% > nul &; 
 if exist linelen && cat --locate=%EOL% --length=%linelen% %FILE% > nul &; set /a linenum=%@retval%
 set /a c=%c%-1
 set result=%result%%%linenum%,
-#echo c=%c% result=%result% skipEOL=%skipEOL% linelen=%linelen% linenum=%linenum%
 if %c%>=1 && if exist linelen && set /a skipEOL=%linelen%+1 && set linenum= && set linelen= && goto :LoopCntSpaceEOL
-#cat --locate="\x0D%~3" %FILE% > nul &; set /a result=%result%+%@retval%
-#cat --locate="\x20%~3" %FILE% > nul &; set /a result=%result%+%@retval%
 if %result:~-1,1%==, && set result=%result:~0,-1%
 :EndCntSpaceEOL
 endlocal && set result=%result%
@@ -179,46 +172,66 @@ goto :eof
 :count
 setlocal && set * && set FILE=%FILE% && set SIZE=%filelen% && set "COUNT=%COUNT%" && set i=%i%
 if not /i "%COUNT%"=="\x0D\x0A" if not /i "%COUNT%"=="\x0A" if not /i "%COUNT%"=="\x0D" || endlocal && set result= && echo End Of Line markers are not counted with '/COUNT(C):' use TEXTSTAT.G4B FILE && debug msg=3 && goto :eof
-set x=19
-#NOTNEEDEDANYMORE#set "COUNT=%COUNT%" &; set /a COUNTlen=%@retval% &; if %COUNTlen%<=16 && set x=19 ! set x=27
-cat --locate%i%="%COUNT%" --length=%SIZE% %FILE% > nul &; set /a result=%@retval%
+echo -e %COUNT% | set count=
+set "count=%count%" &; set /a countlen=%@retval%
+set "COUNT=%COUNT%" &; set /a COUNTLEN=%@retval%
+set h=19
+set result=0 && set skip=0 && set /a skipmax=%SIZE%-%countlen%
+if %countlen%<=16 && goto :countloopend
+if /i "%COUNT:~0,8%"=="\x0D\x0A\x20" && set bol=\x0D\x0A\x20 && set countA=%count:~0,13% && set countB=%count:~13,16% && set countC=%count:~29,16% && set /a countlen=%countlen%+3 && goto :countdone ! if /i "%COUNT:~0,9%"=="\x0D\x0A " && set bol=\x0D\x0A\x20 && set countA=%count:~0,13% && set countB=%count:~13,16% && set countC=%count:~29,16% && set /a countlen=%countlen%+3 && goto :countdone
+if /i "%COUNT:~0,8%"=="\x0D\x0A" && set bol=\x0D\x0A && set countA=%count:~0,14% && set countB=%count:~14,16% && set countC=%count:~30,16% && set /a countlen=%countlen%+2 && goto :countdone
+if /i "%COUNT:~0,8%"=="\x0A\x20" && set bol=\x0A\x20 && set countA=%count:~0,14% && set countB=%count:~14,16% && set countC=%count:~30,16% && set /a countlen=%countlen%+2 && goto :countdone ! if /i "%COUNT:~0,5%"=="\x0A " && set bol=\x0A\x20 && set countA=%count:~0,14% && set countB=%count:~14,16% && set countC=%count:~30,16% && set /a countlen=%countlen%+2 && goto :countdone ! if /i "%COUNT:~0,8%"=="\x0D\x20" && set bol=\x0D\x20 && set countA=%count:~0,14% && set countB=%count:~14,16% && set countC=%count:~30,16% && set /a countlen=%countlen%+2 && goto :countdone ! if /i "%COUNT:~0,5%"=="\x0D " && set bol=\x0D\x20 && set countA=%count:~0,14% && set countB=%count:~14,16% && set countC=%count:~30,16% && set /a countlen=%countlen%+2 && goto :countdone
+if /i "%COUNT:~0,4%"=="\x0A" && set bol=\x0A && set countA=%count:~0,15% && set countB=%count:~15,16% && set countC=%count:~31,16% && set /a countlen=%countlen%+1 && goto :countdone ! if /i "%COUNT:~0,4%"=="\x0D" && set bol=\x0D && set countA=%count:~0,15% && set countB=%count:~15,16% && set countC=%count:~31,16% && set /a countlen=%countlen%+1 && goto :countdone
+if /i "%COUNT:~-8,8%"=="\x0D\x0A" && if %countlen%<=30 && set eol=\x0D\x0A && set countA=%count:~0,16% && set countB=%count:~16,14% &&  && set /a countlen=%countlen%+2 && goto :countdone ! if /i "%COUNT:~-8,8%"=="\x0D\x0A" && if not %countlen%<=30 && set countA=%count:~0,16% && set countB=%count:~16,16% && set countC=%count:~32,14% && set /a countlen=%countlen%+2 && goto :countdone
+if /i "%COUNT:~-4,4%"=="\x0A" && if %countlen%<=31 && set eol=\x0A && set countA=%count:~0,16% && set countB=%count:~16,15% && set /a countlen=%countlen%+1 && goto :countdone ! if /i "%COUNT:~-4,4%"=="\x0A" && if not %countlen%<=31 && set eol=\x0A && set countA=%count:~0,16% && set countB=%count:~16,16% && set countC=%count:~32,15% && set /a countlen=%countlen%+1 && goto :countdone
+if /i "%COUNT:~-4,4%"=="\x0D" && if %countlen%<=31 && set eol=\x0D && set countA=%count:~0,16% && set countB=%count:~16,15% && set /a countlen=%countlen%+1 && goto :countdone ! if /i "%COUNT:~-4,4%"=="\x0D" && if not %countlen%<=31 && set eol=\x0D && set countA=%count:~0,16% && set countB=%count:~16,16% && set countC=%count:~32,15% && set /a countlen=%countlen%+1 && goto :countdone
+set countA=%count:~0,16% && set countB=%count:~16,16% && set countC=%count:~32,16%
+:countdone
+if %countlen%<=32 && set /a lastlen=%countlen%-16 && set h=35 ! if %countlen%<=48 && set /a lastlen=%countlen%-32 && set h=51
+set cntAlen=16 && set cntBlen=16
+call Fn.11 "%countA%" "\x5C\x78" && echo -e %countA% | set cntA= &; set "cntA=%cntA%" &; set /a cntAlen=%@retval%
+if exist countC && call Fn.11 "%countB%" "\x5C\x78" && echo -e %countB% | set cntB= &; set "cntB=%cntB%" &; set /a cntBlen=%@retval%
+:countloop
+if not %countlen%<=16 && if %countlen%<=32 && set foundA= && cat --skip=%skip% --locate%i%="%bol%%%countA%" --length=%SIZE% --number=1 %FILE% > nul &; set /a skip=%?%+%cntAlen% && set foundA=Y &; cat --skip=%skip% --locate%i%="%countB%%%eol%" --length=%lastlen% %FILE% > nul &; set /a result=%result%+1 && set /a skip=%skip%+%lastlen%+1 &; if %skip%<=%skipmax% && goto :countloop
+if not %countlen%<=32 && set foundA= && set foundB= && cat --skip=%skip% --locate%i%="%bol%%%countA%" --length=%SIZE% --number=1 %FILE% > nul &; set /a skip=%?%+%cntAlen% && set foundA=Y &; cat --skip=%skip% --locate%i%="%countB%" --length=16 %FILE% > nul &; set /a skip=%?%+%cntBlen% && set foundB=Y &; cat --skip=%skip% --locate%i%="%countC%%%eol%" --length=%lastlen% %FILE% > nul &; set /a result=%result%+1 && set /a skip=%skip%+%lastlen%+1 &; if %skip%<=%skipmax% && goto :countloop
+if %foundB%==Y && set /a skip=%skip%+1 &; if %skip%<=%skipmax% && if %skip%<=%SIZE% && goto :countloop
+if %foundA%==Y && set /a skip=%skip%+1 &; if %skip%<=%skipmax% && if %skip%<=%SIZE% && goto :countloop
+:countloopend
+if %countlen%<=16 && cat --locate%i%="%COUNT%" --length=%SIZE% %FILE% > nul &; set /a result=%@retval%
+if "%bol:~-4,4%"=="\x20" && set bol=\x20 ! set bol=
 if not exist result && set result=0
-call Fn.4 ;; set /a y=%@retval%>>8
-#echo y=%y% x=%x%
-if not /i "%COUNT:~0,4%"=="\x0A" && if not /i "%COUNT:~0,4%"=="\x0D" && if not /i "%COUNT:~0,8%"=="\x0D\x0A" && if not /i "%COUNT:~-4,4%"=="\x0A" && if not /i "%COUNT:~-4,4%"=="\x0D" && if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; call Fn.5 0 %y% |; echo -e -n $[0x0F] %COUNT%$[] && call Fn.5 %x% %y% |; echo %result% found
-#call Fn.4 ;; set /a y=%@retval%>>8
-if not /i "%COUNT:~0,8%"=="\x0D\x0A" &; if not /i "%COUNT:~0,4%"=="\x0A" if not /i "%COUNT:~0,4%"=="\x0D" |; call Fn.5 0 %y% |; echo -n -e $[0x0F] %COUNT:~4% && call Fn.5 %x% %y% |; echo %result% found at beginning of line
-#OKE#if not /i "%COUNT:~0,8%"=="\x0D\x0A" &; if not /i "%COUNT:~0,4%"=="\x0A" if not /i "%COUNT:~0,4%"=="\x0D" |; call Fn.5 0 %y% |; echo -n $[0x0F] %COUNT%$[] && call Fn.5 %x% %y% |; echo %result% found at beginning of line
-#call Fn.4 ;; set /a y=%@retval%>>8
-if not /i "%COUNT:~0,8%"=="\x0D\x0A" |; call Fn.5 0 %y% |; echo -n -e $[0x0F] %COUNT:~8%$[] && call Fn.5 %x% %y% |; echo %result% found at beginning of line
-#OKE#if not /i "%COUNT:~0,8%"=="\x0D\x0A" |; call Fn.5 0 %y% |; echo -n $[0x0F] %COUNT%$[] && call Fn.5 %x% %y% |; echo %result% found at beginning of line
-if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; if not /i "%COUNT:~-4,4%"=="\x0A" if not /i "%COUNT:~-4,4%"=="\x0D" |; call Fn.5 0 %y% |; echo -n -e $[0x0F] %COUNT:~0,-4%$[] && call Fn.5 %x% %y% |; echo %result% found at end of line
-#OKE#if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; if not /i "%COUNT:~-4,4%"=="\x0A" if not /i "%COUNT:~-4,4%"=="\x0D" |; call Fn.5 0 %y% |; echo -n $[0x0F] %COUNT%$[] && call Fn.5 %x% %y% |; echo %result% found at end of line
-#call Fn.4 ;; set /a y=%@retval%>>8
-if not /i "%COUNT:~-8,8%"=="\x0D\x0A" |; call Fn.5 0 %y% |; echo -n -e $[0x0F] %COUNT:~0,-8%$[] && call Fn.5 %x% %y% |; echo %result% found at end of line
-#ORG#if not /i "%COUNT:~-8,8%"=="\x0D\x0A" |; call Fn.5 0 %y% |; echo -n $[0x0F] %COUNT%$[] && call Fn.5 %x% %y% |; echo %result% found at end of line
+call Fn.4 ;; set /a v=%@retval%>>8
+if not /i "%COUNT:~0,4%"=="\x0A" && if not /i "%COUNT:~0,4%"=="\x0D" && if not /i "%COUNT:~0,8%"=="\x0D\x0A" && if not /i "%COUNT:~-4,4%"=="\x0A" && if not /i "%COUNT:~-4,4%"=="\x0D" && if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; call :Fn.5 0 %v% && echo -e -n $[0x0F] %count%$[] && call :Fn.5 %h% %v% && echo %result% found
+if not /i "%COUNT:~0,8%"=="\x0D\x0A" &; if not /i "%COUNT:~0,4%"=="\x0A" if not /i "%COUNT:~0,4%"=="\x0D" |; call :Fn.5 0 %v% && echo -n -e $[0x0F] %bol%%%%count% && call :Fn.5 %h% %v% && echo %result% found at beginning of line
+if not /i "%COUNT:~0,8%"=="\x0D\x0A" |; call :Fn.5 0 %v% && echo -n -e $[0x0F] %bol%%%%count%$[] && call :Fn.5 %h% %v% && echo %result% found at beginning of line
+if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; if not /i "%COUNT:~-4,4%"=="\x0A" if not /i "%COUNT:~-4,4%"=="\x0D" |; call :Fn.5 0 %v% && echo -n -e $[0x0F] %count%$[] && call :Fn.5 %h% %v% && echo %result% found at end of line
+if not /i "%COUNT:~-8,8%"=="\x0D\x0A" |; call :Fn.5 0 %v% && echo -n -e $[0x0F] %count%$[] && call :Fn.5 %h% %v% && echo %result% found at end of line
 if %result%==0 && set result=
 endlocal && set result=%result%
-debug msg=3
+goto :eof
+
+:Fn.5
+call Fn.5 %~1 %~2
 goto :eof
 
 :help
-echo -e Help\t  TEXTSTAT.G4B v0.6 (20221017), by deomsh
-echo -e Use 1\t  TEXTSTAT.G4B [switch] FILE
-echo -e Use 2\t  TEXTSTAT.G4B [switch] "FILE"
+echo -e Help\t  TEXTSTAT.G4B v0.6.1 (20221021), by deomsh
+echo -e Use 1\t  TEXTSTAT.G4B [switches] FILE
+echo -e Use 2\t  TEXTSTAT.G4B [switches] "FILE"
 echo -e Use 3\t  TEXTSTAT.G4B [/?]
-echo -e Switches  /COUNT:phrase or "/COUNT:phrase" to find count of 'phrase'\n\t  /COUNTC:phrase or "/COUNTC:phrase" same, but case-sensitive
-echo -e Remarks\t  FILE must be a textfile, max 261632 bytes (255,5KB)\n\t  Switches are not case-sensitive\n\t  'phrase' max 16 chars; if containing spaces, use double-quotes
-echo $[]          For double-qoute char in 'phrase' use \x22
+echo -e Switches  [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase' OR\n\t  [/]COUNTC:phrase or "[/]COUNTC:phrase" same, but case-sensitive\n\t  [/]MDBASE:startsector - default 0x3000, max 511 sectors used
+echo -e Remarks\t  FILE must be a textfile, max 261632 bytes (255,5KB)\n\t  Switches are not case-sensitive and order is free (but before FILE)\n\t  'phrase' max 48 chars; if containing spaces or '=', use double-quotes
+echo $[]          For double-qoute char in 'phrase' use \x22, % in 'phrase' use \x25
 echo $[]          End Of Line markers at begin/ end of 'phrase': \x0A, \x0D\x0A or \x0D
-echo $[]          For % in 'phrase' use \x25 (if needed)
+echo $[]          Counting \xASCII-codes: use \\x5C\\x78code (code is hex-number)
 echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B
 echo -e Example   /TEXTSTAT.G4B /TEXTSTAT.G4B
 echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd0,0)/TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
-echo -e Example   TEXTSTAT.G4B "/COUNT:if not" TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B "/COUNT:if \x22" TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B /COUNT:\x0Aif TEXTSTAT.G4B
+#ORG#echo -e Example   TEXTSTAT.G4B "/COUNT:if not" TEXTSTAT.G4B
+echo Example   TEXTSTAT.G4B "COUNT:if \x22" TEXTSTAT.G4B
+echo Example   TEXTSTAT.G4B COUNT:\x0Aif TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:example TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNTC:example TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B /COUNT:\x25@retval\x25 TEXTSTAT.G4B
+echo Example   TEXTSTAT.G4B COUNT:\x25@retval\x25 TEXTSTAT.G4B
+echo Example   TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825 TEXTSTAT.G4B
