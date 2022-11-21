@@ -39,7 +39,7 @@ History
 v0.6.1
 Switch /COUNT[C]:phrase supports graphicsmodes
 Count of 'phrase' extended to 48 chars included counting \xASCII-codes with \\x5C\\x78code
-Added Switch /MSBASE:startsector to set startsector for memory-use other than default
+Added Switch /MDBASE:startsector to set startsector for memory-use other than default
 
 v0.6
 Added count of 'phrase'
