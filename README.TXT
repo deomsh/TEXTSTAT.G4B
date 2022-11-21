@@ -1,5 +1,3 @@
-# TEXTSTAT.G4B
-
 TEXTSTAT.G4B v0.6.1 (20221021), by deomsh
 
 Function: 
