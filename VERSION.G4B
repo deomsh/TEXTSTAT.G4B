@@ -1,0 +1,25 @@
+!BAT
+#-#+ VERSION.G4B (20221121), by deomsh
+#-#+ Function: display first line of text-file 'FILE' containing file-name, or grub4dos version date
+setlocal && set *
+if "%~1"=="" && goto :help
+if /i "%~1"=="grub4dos" && set /a ver=*0x8278 > nul &; echo Grub4dos version %ver% found && endlocal && goto :eof
+set ARG=%1 && set device=%~d1 && set "path=%~p1" && set "name=%~n1" && set "ext=%~x1"
+if not exist device && endlocal && echo Abort: device not found && goto :eof
+if "%device:~0,4%"=="(md)" && endlocal && echo Abort: (md)-device not supported && goto :eof
+call Fn.11 "%device%%%path%%%name%%%ext%" "\x25" && endlocal && echo Abort: unsupported char '%' found in '%device%%%path%%%name%%%ext%' && goto :eof
+call Fn.11 "%device%%%path%%%name%%%ext%" "\x20" && set "FILE=%device%/"%path:~1%%%name%%%ext%"" ! set "FILE=%device%%%path%%%name%%%ext%"
+if not exist %FILE% && endlocal && echo Abort: FILE '%device%%%path%%%name%%%ext%' does not exist && goto :eof
+raw cat --locatei="%name%%%%ext%" --number=1 %FILE% > nul &; set /a skip=%?% > nul
+if not exist skip && raw cat --locatei="%name%" --number=1 %FILE% > nul &; set /a skip=%?% > nul
+if not exist skip && endlocal && echo File-name '%name%' not found in '%device%%%path%%%name%%%ext%' && goto :eof
+raw cat --skip=%skip% --locate=\x0D\x0A --number=1 %FILE% > nul && set EOL=\x0D\x0A ! raw cat --skip=%skip% --locate=\x0A --number=1 %FILE% > nul && set EOL=\x0A ! raw cat --skip=%skip% --locate=\x0D --number=1 %FILE% > nul && set EOL=\x0D ! endlocal && echo Abort: No supported EndOfLine marker found && goto :eof
+raw cat --skip=%skip% --locate=%EOL% --number=1 %FILE% > nul &; set /a length=%?%-%skip% > nul
+if %length%>=1 && raw cat --skip=%skip% --length=%length% %FILE% && endlocal && goto :eof ! endlocal && echo Abort: unspecified error && goto :eof
+
+:help
+echo VERSION.G4B (20221121), by deomsh
+echo -e Function Display first line of text-file 'FILE' containing file-name\n\t Or display grub4dos version date
+echo -e Use1\t VERSION.G4B ["]FILE["]
+echo -e Use2\t VERSION.G4B grub4dos
+echo -e Remark\t Without device/ path: file-name is searched on ROOT ('/' not needed)
