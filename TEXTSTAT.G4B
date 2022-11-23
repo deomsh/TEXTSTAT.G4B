@@ -461,8 +461,8 @@ echo -e %resetcol%For double-qoute use \\x22,\ for '\x25' use \\x25, for space \
 echo %resetcol%EndOfLine markers at begin OR end of 'phrase': \x0A, \x0D\x0A or \x0D
 echo %resetcol%For counting '\' use double '\\', count \xASCII: \\x.. or \x5C\x78..
 if exist message && goto :eof
-echo -e \t  Output: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT (max)
-echo -e \t  Output 'result' (value same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
+echo -e \t  Vars: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
+echo -e \t  Var 'result' only (same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
 echo -e Example   /TEXTSTAT.G4B (fd0)/TEXTSTAT.G4B
 echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
