@@ -74,4 +74,4 @@ Function Display first line of text-file 'FILE' containing file-name
          Or display grub4dos version date
 Use1     VERSION.G4B ["]FILE["]
 Use2     VERSION.G4B grub4dos
-Remark   Without device/ path: file-name is searched on ROOT ('/' not needed)
+Remark   Without device/ path: file-name is searched on ROOT ('/' not needed, except if file-name is 'grub4dos')
