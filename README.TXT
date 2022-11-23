@@ -13,7 +13,7 @@ optional: count phrase (with switch)
 optional: print lines containing counted phrases (with extra switch)
 optional: quiet operation, export number of counted phrases as 'result' only (with extra switch)
 
-TEXTSTAT.G4B v0.7.0 (20221123), by deomsh
+Help     TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea P-switch: steve6375)
 Use      TEXTSTAT.G4B ["]FILE["] [switches]
 Switches [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase'
          [/]COUNTC:phrase or "/COUNTC:phrase" same, but case-sensitive
