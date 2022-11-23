@@ -1,5 +1,5 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.7 (20221122), by deomsh (idea of P-switch by steve6375)
+#-#+ TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea of P-switch by steve6375)
 #-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[i]:phrase["] (COUNTi for case-sensitive), print counted lines to screen with /P
 #-# Use 1: TEXTSTAT.G4B [/?]
 #-# Use 2: TEXTSTAT.G4B ["]FILE["] [switches]
@@ -450,7 +450,7 @@ shift
 goto :parseswitches
 
 :help
-echo -e Help\t  TEXTSTAT.G4B v0.7 (20221122), by deomsh (idea of P-switch: steve6375)
+echo -e Help\t  TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea of P-switch: steve6375)
 echo -e Use \t  TEXTSTAT.G4B ["]FILE["] [switches]
 echo -e Switches  /V to get output in variables too; /Q quiet operation, includes /V\n\t  ["][/]COUNT[i]:phrase["] to count 'phrase'; COUNTi: case-sensitive\n\t  /P to print counted 'phrase'-lines to screen (not mixed EOL's or /Q)\n\t  [/]MDBASE:startsector - >=0x3000 (default), max 511 sectors used
 echo -e Remarks\t  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)\n\t  Switches are not case-sensitive and order is free (but after FILE)
