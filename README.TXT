@@ -44,7 +44,7 @@ Example  TEXTSTAT.G4B /COUNT:\x25@retval\x25 TEXTSTAT.G4B
 Example  TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825 TEXTSTAT.G4B
 
 Help     TEXTSTAT.G4B [/?]
-         Prints lines 16-44 above to screen
+         Prints lines above to screen: Help - (last) Example
 
 History
 v0.7.0
