@@ -39,7 +39,7 @@ if %count%==bad && set "message=%COUNT%"
 if exist message && goto :endlocal
 if exist COUNT && set "NULL= > nul"
 raw cat --length=0 %filename% > nul ;; set /a filelen=%@retval%
-if %filelen%==0 && endlocal && set "message1=Abort: %~nx2 is a Zero-byte File (or possibly a Directory on NTFS)" && goto :endlocal
+if %filelen%==0 && endlocal && set "message1=Abort: %~nx2 is a Zero-byte File (or possibly a Directory on NTFS)" && goto :endlocal ! set TSSIZE=%filelen%
 call Fn.11 %filename% " " && echo %NULL% && echo %device%/%pathfile:~2,-1%%%NULL% && echo Size               %filelen% bytes%%NULL% && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported!%NULL% && goto :endlocal
 call Fn.11 %filename% " " || echo %NULL% && echo %filename%%%NULL% && echo Size               %filelen% bytes%NULL% && if not %filelen%<=261632 && endlocal && echo %filename%>255,5KB - not supported!%NULL% && goto :endlocal
 if exist MDBASE && set mdbase=%MDBASE% && set readsect=511 && set MDBASE= ! set mdbase=0x3000 && set readsect=511 &; set FILE=(md)%mdbase%+%readsect% &; echo -n > %FILE%
@@ -89,7 +89,7 @@ if %pagersts%==1 && pager on ! pager off
 if exist debugsts && debug %debugsts%
 if not exist STATOUT && set *
 if exist STATOUT && if exist COUNT && if exist q && set * && set result=%TSCOUNT% && set "message=%message%"
-endlocal && set result=%result% && set TSCOUNT=%TSCOUNT% && set TSLINES=%TSLINES% && set TSEOL=%TSEOL% && set TSTXTYPE=%TSTXTYPE% && set TSLABELS=%TSLABELS% && set TSHASH=%TSHASH% && set TS_HASH=%TS_HASH% && set TS2COL=%TS2COLON% && set TS_2COL=%TS_2COL% && set TSSCOL_=%TSSCOL_% && set TS_SCOL_=%TS_SCOL_% && set TSREM=%TSREM% && set TS_REM_=%TS_REM_% && set TSBSPACE=%TSBSPACE% && set TSESPACE=%TSESPACE% && set TSMAXLEN=%TSMAXLEN% && set "message=%message%" && if %zeros%>=1 && set TSZEROS=%zeros%
+endlocal && set result=%result% && set TSCOUNT=%TSCOUNT% && set TSSIZE=%TSSIZE% && set TSLINES=%TSLINES% && set TSEOL=%TSEOL% && set TSTXTYPE=%TSTXTYPE% && set TSLABELS=%TSLABELS% && set TSHASH=%TSHASH% && set TS_HASH=%TS_HASH% && set TS2COL=%TS2COLON% && set TS_2COL=%TS_2COL% && set TSSCOL_=%TSSCOL_% && set TS_SCOL_=%TS_SCOL_% && set TSREM=%TSREM% && set TS_REM_=%TS_REM_% && set TSBSPACE=%TSBSPACE% && set TSESPACE=%TSESPACE% && set TSMAXLEN=%TSMAXLEN% && set "message=%message%" && if %zeros%>=1 && set TSZEROS=%zeros%
 debug msg=3
 goto :eof
 
@@ -461,8 +461,8 @@ echo -e %resetcol%For double-qoute use \\x22,\ for '\x25' use \\x25, for space \
 echo %resetcol%EndOfLine markers at begin OR end of 'phrase': \x0A, \x0D\x0A or \x0D
 echo %resetcol%For counting '\' use double '\\', count \xASCII: \\x.. or \x5C\x78..
 if exist message && goto :eof
-echo -e \t  Output: max TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
-echo -e \t  Output 'result' (value as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
+echo -e \t  Output: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT (max)
+echo -e \t  Output 'result' (value same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
 echo -e Example   /TEXTSTAT.G4B (fd0)/TEXTSTAT.G4B
 echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
