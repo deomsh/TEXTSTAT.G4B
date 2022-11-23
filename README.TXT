@@ -1,4 +1,4 @@
-TEXTSTAT.G4B v0.7.0 (20221123), by deomsh
+TEXTSTAT.G4B
 
 Function: 
 detect zeros before last EOL
@@ -13,7 +13,8 @@ optional: count phrase (with switch)
 optional: print lines containing counted phrases (with extra switch)
 optional: quiet operation, export number of counted phrases as 'result' only (with extra switch)
 
-Use TEXTSTAT.G4B ["]FILE["] [switches]
+TEXTSTAT.G4B v0.7.0 (20221123), by deomsh
+Use      TEXTSTAT.G4B ["]FILE["] [switches]
 Switches [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase'
          [/]COUNTC:phrase or "/COUNTC:phrase" same, but case-sensitive
          [/]MDBASE:startsector - default 0x3000, max 511 sectors used
@@ -43,7 +44,7 @@ Example  TEXTSTAT.G4B /COUNT:\x25@retval\x25 TEXTSTAT.G4B
 Example  TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825 TEXTSTAT.G4B
 
 Help     TEXTSTAT.G4B [/?]
-         Prints lines above to screen
+         Prints lines 16-44 above to screen
 
 History
 v0.7.0
