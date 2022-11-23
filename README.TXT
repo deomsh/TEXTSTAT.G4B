@@ -68,7 +68,7 @@ First published version
 
 BONUS
 
-VERSION.G4B (20221121), by deomsh
+VERSION.G4B v0.1 (20221121), by deomsh
 Function Display first line of text-file 'FILE' containing file-name
          Or display grub4dos version date
 Use1     VERSION.G4B ["]FILE["]
