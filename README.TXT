@@ -13,7 +13,7 @@ optional: count phrase (with switch)
 optional: print lines containing counted phrases (with extra switch)
 optional: quiet operation, export number of counted phrases as 'result' only (with extra switch)
 
-Help     TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea P-switch: steve6375)
+Help     TEXTSTAT.G4B v0.7 (20221123), by deomsh (idea P-switch: steve6375)
 Use      TEXTSTAT.G4B ["]FILE["] [switches]
 Switches [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase'
          [/]COUNTC:phrase or "/COUNTC:phrase" same, but case-sensitive
@@ -47,7 +47,7 @@ Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen: Help - (last) Example
 
 History
-v0.7.0
+v0.7
 Count of lines starting with space
 Added switch /V to export all counts as variables
 Added switch /Q for quiet operation and export counts as variables
