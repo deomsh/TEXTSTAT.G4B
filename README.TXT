@@ -1,4 +1,4 @@
-TEXTSTAT.G4B v0.7 (20221122), by deomsh
+TEXTSTAT.G4B v0.7.0 (20221123), by deomsh
 
 Function: 
 detect zeros before last EOL
