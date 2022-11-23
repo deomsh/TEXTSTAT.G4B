@@ -1,9 +1,9 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea of P-switch by steve6375)
-#-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[i]:phrase["] (COUNTi for case-sensitive), print counted lines to screen with /P
+#-#+ TEXTSTAT.G4B v0.7 (20221123), by deomsh (idea of P-switch by steve6375)
+#-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[c]:phrase["] (COUNTc for case-sensitive), print counted lines to screen with /P
 #-# Use 1: TEXTSTAT.G4B [/?]
 #-# Use 2: TEXTSTAT.G4B ["]FILE["] [switches]
-#-# Remark: if FILE contains spaces use "FILE", same for switch "[/]COUNT[i]:"
+#-# Remark: if FILE contains spaces use "FILE", same for switch "[/]COUNT[c]:"
 ::----------------------------------------------------------------------------------------------------------------------------
 :: MAIN ROUTINE
 ::----------------------------------------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ if %TSBSPAC1%>=1 && if %TSBSPAC2%>=1 && set /a TSBSPACE=%TSBSPAC1%+%TSBSPAC2% ! 
 if %TSESPAC1%>=1 && if %TSESPAC2%>=1 && set /a TSESPACE=%TSESPAC1%+%TSESPAC2% ! if %TSESPAC1%>=1 && set /a TSESPACE=%TSESPAC1% ! if %TSESPAC2%>=1 && set /a TSESPACE=%TSESPAC2%
 set TSMAXLEN=%MAXLEN%
 if %PRINT%==Y && if not exist q && if %TSTXTYPE%==MIXED_EOL && if %TSCOUNT%>=1 && echo %TSTXTYPE%: only printing of counted lines for MS-DOS, UNIX or MAC text-files
-if exist message &; set STATOUT= && if not exist q && echo $[] Abort: unsupported char(s) in 'phrase' of switch ["][/]COUNT[i]:phrase["] &; if /i "%message:~0,6%"=="COUNT:" && echo $[0x00]"$[0x70]%message:~6,78% ! if /i "%message:~0,6%"=="COUNTi" && echo $[0x00]"$[0x70]%message:~7,78% ! echo $[0x00]"$[0x70]%message:~0,78%
+if exist message &; set STATOUT= && if not exist q && echo $[] Abort: unsupported char(s) in 'phrase' of switch ["][/]COUNT[c]:phrase["] &; if /i "%message:~0,6%"=="COUNT:" && echo $[0x00]"$[0x70]%message:~6,78% ! if /i "%message:~0,6%"=="COUNTc" && echo $[0x00]"$[0x70]%message:~7,78% ! echo $[0x00]"$[0x70]%message:~0,78%
 #LOCKED#
 if exist message && if not exist q && echo -n && set t=\x20 && set "resetcol=$[] " && call :messagehelp
 if exist message1 && set "message=%message1%" && if not exist q && echo %message1% && echo
@@ -440,8 +440,8 @@ if %result%==0 && set result= && call :Fn11 \x20 "%message:~-1,1%" &; if %result
 if exist badARG && goto :eof
 if "%~1"=="" && set ARG= && set count= && set message= && set lastchar= && goto :eof
 set lastchar= && set "ARG=%~1"
-if /i "%ARG:~0,6%"=="COUNT:" && set "COUNT=%ARG:~6%" ! if /i "%ARG:~0,7%"=="/COUNT:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,7%"=="COUNTi:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,8%"=="/COUNTi:" && set "COUNT=%ARG:~8%"
-if /i "%ARG:~0,6%"=="COUNT:" && if exist COUNT && set i=i && shift && goto :parseswitches ! if /i "%ARG:~0,6%"=="COUNTi" && set i= && shift && goto :parseswitches ! if not "%ARG:~0,1%"=="/" && if /i "%ARG:~0,7%"=="/COUNTi" && set i= && shift && goto :parseswitches ! if "%ARG:~0,1%"=="/" && if /i "%ARG:~1,6%"=="COUNTi" && set i= && shift && goto :parseswitches
+if /i "%ARG:~0,6%"=="COUNT:" && set "COUNT=%ARG:~6%" ! if /i "%ARG:~0,7%"=="/COUNT:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,7%"=="COUNTc:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,8%"=="/COUNTc:" && set "COUNT=%ARG:~8%"
+if /i "%ARG:~0,6%"=="COUNT:" && if exist COUNT && set i=i && shift && goto :parseswitches ! if /i "%ARG:~0,6%"=="COUNTc" && set i= && shift && goto :parseswitches ! if not "%ARG:~0,1%"=="/" && if /i "%ARG:~0,7%"=="/COUNTc" && set i= && shift && goto :parseswitches ! if "%ARG:~0,1%"=="/" && if /i "%ARG:~1,6%"=="COUNTc" && set i= && shift && goto :parseswitches
 if /i "%ARG:~0,8%"=="/MDBASE:" && set "MDBASE=%ARG:~8%" ! if /i "%ARG:~0,7%"=="MDBASE:" && set "MDBASE=%ARG:~7%"
 if /i "%ARG%"=="/Q" && set q=q && set "NULL= > nul"
 if /i "%ARG%"=="/P" && set PRINT=Y
@@ -450,9 +450,9 @@ shift
 goto :parseswitches
 
 :help
-echo -e Help\t  TEXTSTAT.G4B v0.7.0 (20221123), by deomsh (idea P-switch: steve6375)
+echo -e Help\t  TEXTSTAT.G4B v0.7 (20221123), by deomsh (idea P-switch: steve6375)
 echo -e Use \t  TEXTSTAT.G4B ["]FILE["] [switches]
-echo -e Switches  /V to get output in variables too; /Q quiet operation, includes /V\n\t  ["][/]COUNT[i]:phrase["] to count 'phrase'; COUNTi: case-sensitive\n\t  /P to print counted 'phrase'-lines to screen (not mixed EOL's or /Q)\n\t  [/]MDBASE:startsector - >=0x3000 (default), max 511 sectors used
+echo -e Switches  /V to get output in variables too; /Q quiet operation, includes /V\n\t  ["][/]COUNT[c]:phrase["] to count 'phrase'; COUNTc: case-sensitive\n\t  /P to print counted 'phrase'-lines to screen (not mixed EOL's or /Q)\n\t  [/]MDBASE:startsector - >=0x3000 (default), max 511 sectors used
 echo -e Remarks\t  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)\n\t  Switches are not case-sensitive and order is free (but after FILE)
 set "t=\t  " && set "resetcol=$[]          "
 :messagehelp
@@ -462,12 +462,12 @@ echo %resetcol%EndOfLine markers at begin OR end of 'phrase': \x0A, \x0D\x0A or 
 echo %resetcol%For counting '\' use double '\\', count \xASCII: \\x.. or \x5C\x78..
 if exist message && goto :eof
 echo -e \t  Vars: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
-echo -e \t  Var 'result' only (same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
+echo -e \t  Var 'result' only (same as TSCOUNT): ["][/]COUNT[c]:phrase["] /Q
 echo -e Example   /TEXTSTAT.G4B (fd0)/TEXTSTAT.G4B
 echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
 echo Example   TEXTSTAT.G4B "COUNT:if \x22" TEXTSTAT.G4B
 echo Example   TEXTSTAT.G4B COUNT:\x0Aif TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B /COUNT:example TEXTSTAT.G4B
-echo -e Example   TEXTSTAT.G4B /COUNTi:example TEXTSTAT.G4B
+echo -e Example   TEXTSTAT.G4B /COUNTc:example TEXTSTAT.G4B
 echo Example   TEXTSTAT.G4B COUNT:\x25@retval\x25 TEXTSTAT.G4B
