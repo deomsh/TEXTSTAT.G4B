@@ -28,9 +28,9 @@ Remarks  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)
          For double-qoute use \x22,\ for '%' use \x25, for space \x20 if needed
          EndOfLine markers at begin OR end of 'phrase': \x0A, \x0D\x0A or \x0D
          For counting '\' use double '\\', count \xASCII: \\x.. or \x5C\x78..
-         Output: max TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL
+         Vars: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL
          TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
-         Output 'result' (value as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
+         Var 'result' only (same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
 Example  TEXTSTAT.G4B TEXTSTAT.G4B
 Example  (hd0,0)/TEXTSTAT.G4B (hd0,0)/TEXTSTAT.G4B
 Example  TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
@@ -46,7 +46,7 @@ Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen
 
 History
-v0.7
+v0.7.0
 Count of lines starting with space
 Added switch /V to export all counts as variables
 Added switch /Q for quiet operation and export counts as variables
