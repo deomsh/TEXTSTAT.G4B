@@ -21,7 +21,7 @@ if not exist device && endlocal && echo Abort: device not found && goto :eof
 if %device%==(md) && echo %device% is an md-device, use full DEVICE/PATH && goto :endlocal
 set "path=%~p1"
 set "file=%~nx1"
-set "pathfile=%path%%%file%" &; call Fn.11 "%pathfile%" "\x25" && endlocal && echo Abort: unsupported chat '%' found in '%path%%%file%' && goto :eof
+set "pathfile=%path%%%file%" &; call Fn.11 "%pathfile%" "\x25" && set "message1=Abort: unsupported char '%' found in '%path%%%file%'"
 call Fn.11 "%pathfile%" " " && set pathfile=/"%pathfile:~1%"
 set "filename=%device%%%pathfile%"
 if not exist %filename% && set "message1=Abort: FILE $[0x70]%~nx1$[] does not exist, or is a Directory (except on NTFS)"
