@@ -20,7 +20,7 @@ Switches [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase'
          [/]MDBASE:startsector - default 0x3000, max 511 sectors used
          /V to get output in variables too
          /Q quiet operation, includes /V
-         ["][/]COUNT[i]:phrase["] to count 'phrase', COUNTi: case-sensitive
+         ["][/]COUNT[c]:phrase["] to count 'phrase', COUNTc: case-sensitive
          /P to print counted 'phrase'-lines to screen (not mixed EOL's or /Q)
          [/]MDBASE:startsector - >=0x3000 (default), max 511 sectors used
 Remarks  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)
@@ -39,7 +39,7 @@ Example  TEXTSTAT.G4B "/COUNT:if not" TEXTSTAT.G4B
 Example  TEXTSTAT.G4B "/COUNT:if \x22" TEXTSTAT.G4B
 Example  TEXTSTAT.G4B /COUNT:\x0Aif TEXTSTAT.G4B
 Example  TEXTSTAT.G4B /COUNT:example TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNTC:example TEXTSTAT.G4B
+Example  TEXTSTAT.G4B /COUNTc:example TEXTSTAT.G4B
 Example  TEXTSTAT.G4B /COUNT:\x25@retval\x25 TEXTSTAT.G4B
 Example  TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825 TEXTSTAT.G4B
 
