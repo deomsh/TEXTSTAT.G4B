@@ -34,19 +34,22 @@ Remarks  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)
          Var 'result' only (same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
 Example  TEXTSTAT.G4B TEXTSTAT.G4B
 Example  (hd0,0)/TEXTSTAT.G4B (hd0,0)/TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
-Example  TEXTSTAT.G4B "/COUNT:if not" TEXTSTAT.G4B
-Example  TEXTSTAT.G4B "/COUNT:if \x22" TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNT:\x0Aif TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNT:example TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNTc:example TEXTSTAT.G4B
-Example  TEXTSTAT.G4B /COUNT:\x25@retval\x25 TEXTSTAT.G4B
-Example  TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825 TEXTSTAT.G4B
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:if
+Example  TEXTSTAT.G4B TEXTSTAT.G4B "/COUNT:if not"
+Example  TEXTSTAT.G4B TEXTSTAT.G4B "/COUNT:if \x22"
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x0Aif
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:example
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNTc:example
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x25@retval\x25
+Example  TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825
 
 Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen: Help - (last) Example
 
 History
+v0.7.1
+Correction of Examples in Help: FILE comes before switch(es)
+
 v0.7
 Count of lines starting with space
 Added switch /V to export all counts as variables
