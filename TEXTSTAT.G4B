@@ -1,5 +1,5 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.7 (20221123), by deomsh (idea of P-switch by steve6375)
+#-#+ TEXTSTAT.G4B v0.7.1 (20221125), by deomsh (idea of P-switch by steve6375)
 #-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[c]:phrase["] (COUNTc for case-sensitive), print counted lines to screen with /P
 #-# Use 1: TEXTSTAT.G4B [/?]
 #-# Use 2: TEXTSTAT.G4B ["]FILE["] [switches]
@@ -465,9 +465,9 @@ echo -e \t  Vars: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL
 echo -e \t  Var 'result' only (same as TSCOUNT): ["][/]COUNT[c]:phrase["] /Q
 echo -e Example   /TEXTSTAT.G4B (fd0)/TEXTSTAT.G4B
 echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B
-echo -e Example   TEXTSTAT.G4B /COUNT:if TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B "COUNT:if \x22" TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B COUNT:\x0Aif TEXTSTAT.G4B
-echo -e Example   TEXTSTAT.G4B /COUNT:example TEXTSTAT.G4B
-echo -e Example   TEXTSTAT.G4B /COUNTc:example TEXTSTAT.G4B
-echo Example   TEXTSTAT.G4B COUNT:\x25@retval\x25 TEXTSTAT.G4B
+echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:if
+echo Example   TEXTSTAT.G4B TEXTSTAT.G4B "COUNT:if \x22"
+echo Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x0Aif
+echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:example
+echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNTc:example
+echo Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x25@retval\x25
