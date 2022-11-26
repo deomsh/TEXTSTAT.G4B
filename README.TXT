@@ -13,7 +13,7 @@ optional: count phrase (with switch)
 optional: print lines containing counted phrases (with extra switch)
 optional: quiet operation, export number of counted phrases as 'result' only (with extra switch)
 
-Help     TEXTSTAT.G4B v0.7 (20221123), by deomsh (idea P-switch: steve6375)
+Help     TEXTSTAT.G4B v0.7.2 (20221126), by deomsh (idea P-switch: steve6375)
 Use      TEXTSTAT.G4B ["]FILE["] [switches]
 Switches [/]COUNT:phrase or "[/]COUNT:phrase" to find count of 'phrase'
          [/]COUNTC:phrase or "/COUNTC:phrase" same, but case-sensitive
@@ -33,15 +33,15 @@ Remarks  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)
          TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
          Var 'result' only (same as TSCOUNT): ["][/]COUNT[i]:phrase["] /Q
 Example  TEXTSTAT.G4B TEXTSTAT.G4B
-Example  (hd0,0)/TEXTSTAT.G4B (hd0,0)/TEXTSTAT.G4B
+Example  (hd0,0)/TEXTSTAT.G4B (hd0,0)/TEXTSTAT.G4B /V ;; set TS
 Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:if
 Example  TEXTSTAT.G4B TEXTSTAT.G4B "/COUNT:if not"
 Example  TEXTSTAT.G4B TEXTSTAT.G4B "/COUNT:if \x22"
-Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x0Aif
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x0Aif /Q ;; set result
 Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:example
 Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNTc:example
-Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x25@retval\x25
-Example  TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\\x5C\\x7825@retval\\x5C\\x7825
+Example  TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:\x25@retval\x25 /P
+Example  TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x5C\\x7825@retval\\x5C\\x7825
 
 Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen: Help - (last) Example
@@ -49,6 +49,10 @@ Help     TEXTSTAT.G4B [/?]
 General Remark: grub4dos scripts can normally be ended with Ctrl+C (case of interrupt printing of counted lines with switch /P)
 
 History
+v0.7.2
+Interrupt [Hit Q...] is working to abort further printing to screen of lines containing counted 'phrase' and exit script
+Highlighted of 'phrase' inside lines printed to screen
+
 v0.7.1
 Correction of Examples in Help: FILE comes before switch(es)
 
