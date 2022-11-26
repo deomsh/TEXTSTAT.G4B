@@ -49,7 +49,7 @@ Help     TEXTSTAT.G4B [/?]
 History
 v0.7.2
 Interrupt [Hit Q...] is working to abort further printing to screen of lines containing counted 'phrase' and exit script
-Highlighted of each 'phrase' inside lines printed to screen
+Highlighting of each 'phrase' inside lines printed to screen
 
 v0.7.1
 Correction of Examples in Help: FILE comes before switch(es)
