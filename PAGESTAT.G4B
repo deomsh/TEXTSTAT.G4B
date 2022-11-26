@@ -1,0 +1,51 @@
+!BAT
+#-#+ PAGESTAT.G4B v0.1 (20221126), by deomsh
+#-#+ Function: get graphicsmode, get number of chars on a line, get number of lines on a screen and get number of printable chars on a screen (without scrolling 1 less)
+if "%~1"=="/?" && goto :help
+setlocal && set *
+debug 1
+debug msg=0
+if /i "%~1"=="/Q" && set q=Y && set "echoq= %~1"
+graphicsmode > nul ;; set /A grphmode=%@retval%
+pager off
+set FILENAME=%0
+call Fn.4 ;; set /a v=%@retval%>>8
+if %v%>=1 && set /a v=%v%-1
+set /a v0=%v%
+call Fn.5 0 %v%
+set linelen=1
+call :linelen
+call Fn.5 0 %v%
+set /a pagelen=%v%+1
+call :pagelen
+set /a chars=%linelen% * %pagelen%
+if %v%>=1 && set /a v=%v%-1
+call Fn.5 0 %v%
+debug msg=1
+echo grub> %FILENAME%%%echoq%
+if not %q%==Y &; if %grphmode%<=0xF && set grspace=\x20\x20 ! if %grphmode%<=0xFF && set grspace=\x20
+if not %q%==Y &; if %linelen%<=99 && set lnspace=\x20
+if not %q%==Y &; if %chars%<=999 && set chspace=\x20\x20 ! if %chars%<=9999 && set chspace=\x20
+if not %q%==Y && echo && echo -e Graphicsmode:\t\t\t%grspace%%%grphmode% && echo -e Number chars on a line:\t\t\x20\x20%lnspace%%%linelen% && echo -e Number of lines on a page:\t\x20\x20\x20%pagelen% && echo -e Number chars on a page:\t\t%chspace%%%chars% && echo && set *
+endlocal && set GRPHMODE=%grphmode% && set LINELEN=%linelen% && set PAGELEN=%pagelen% && set CHARS=%chars%
+goto :eof
+
+:linelen
+echo -n -e \x20
+call Fn.4 ;; set /a v1=%@retval%>>8
+if %v0%==%v1% && set /a linelen=%linelen%+1 && goto :linelen
+set v1=
+goto :eof
+
+:pagelen
+call Fn.4 ;; set /a v0=%@retval%>>8
+echo -e \x20
+call Fn.4 ;; set /a v1=%@retval%>>8
+if not %v0%==%v1% && set /a pagelen=%pagelen%+1 && goto :pagelen
+goto :eof
+
+:help
+echo PAGESTAT.G4B v0.1 (20221126), by deomsh
+echo -e Function get graphicsmode, get number of\n         chars on a line, get number of\n         lines on a screen and get number of \n         printable chars on a screen\n         (without scrolling 1 less)
+echo Use      PAGESTAT.G4B [/Q|/?]
+echo -e Remark   With switch /Q all stats exported as\n         variables: GRPHMODE LINELEN PAGELEN CHARS
