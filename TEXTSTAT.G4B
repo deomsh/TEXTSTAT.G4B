@@ -1,5 +1,5 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.7.2 (20221126), by deomsh (idea of P-switch by steve6375)
+#-#+ TEXTSTAT.G4B v0.7.1 (20221125), by deomsh (idea of P-switch by steve6375)
 #-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[c]:phrase["] (COUNTc for case-sensitive), print counted lines to screen with /P
 #-# Use 1: TEXTSTAT.G4B [/?]
 #-# Use 2: TEXTSTAT.G4B ["]FILE["] [switches]
@@ -14,7 +14,7 @@ if exist ARG && set "message1=Abort: FILE $[0x70]%1$[] contains 'bad' chars: che
 if "%~1"=="" && goto :help
 if "%~1"=="/?" && goto :help
 debug status > nul ;; set /a debugsts=%@retval% > nul && debug 1
-pager status > nul ;; set /a pagersts=%@retval% > nul && pager off
+pager status > nul ;; set /a pagersts=%@retval% > nul && pager on
 debug msg=0
 set ARG=%1 &; set device=%~d1
 if not exist device && endlocal && echo Abort: device not found && goto :eof
@@ -307,7 +307,6 @@ if not exist countB && if not exist eol && set /a countlen=%cntAlen% && goto :co
 if not exist countC && set /a countlen=%cntAlen%+%cntBlen%+%eollen% && set /a lastlen=%lastlen%+%cntBlen% && set cntBlen=0
 if %countlen%<=32 && set h=35 ! if %countlen%<=48 && set h=51
 :countloop
-if %STOP%==Y && set PRINT=
 if %PRINT%==Y && if not exist countC && set foundA= && raw cat --skip=%skip% --locate%i%="%bol%%%countA%" --length=%SIZE% --number=1 %FILE% > nul &; set /a skip=%?%+%cntAlen% && set foundA=Y &; raw cat --skip=%skip% --locate%i%="%countB%%%eol%" --length=%lastlen% %FILE% > nul &; set /a result=%result%+1 && setlocal && set /a skip=%skip%-%cntAlen% && call :printline &; endlocal && set /a skip=%skip%+%lastlen%+1 &; if %skip%<=%skipmax% && goto :countloop
 if %PRINT%==Y && if exist countC && set foundA= && set foundB= && raw cat --skip=%skip% --locate%i%="%bol%%%countA%" --length=%SIZE% --number=1 %FILE% > nul &; set /a skip=%?%+%cntAlen% && set foundA=Y &; raw cat --skip=%skip% --locate%i%="%countB%" --length=16 %FILE% > nul &; set /a skip=%?%+%cntBlen% && set foundB=Y &; raw cat --skip=%skip% --locate%i%="%countC%%%eol%" --length=%lastlen% %FILE% > nul &; set /a result=%result%+1 && setlocal && set /a skip=%skip%-%cntAlen%-%cntBlen% && call :printline &; endlocal && set /a skip=%skip%+%lastlen%+1 &; if %skip%<=%skipmax% && goto :countloop
 if not %PRINT%==Y && if not exist countC && set foundA= && raw cat --skip=%skip% --locate%i%="%bol%%%countA%" --length=%SIZE% --number=1 %FILE% > nul &; set /a skip=%?%+%cntAlen% && set foundA=Y &; raw cat --skip=%skip% --locate%i%="%countB%%%eol%" --length=%lastlen% %FILE% > nul &; set /a result=%result%+1 && set /a skip=%skip%+%lastlen%+1 &; if %skip%<=%skipmax% && goto :countloop
@@ -325,12 +324,11 @@ if /i "%COUNT:~-8,8%"=="\x0D\x0A" && set "count=%count:~0,14%" && set eol=\x0D\x
 if /i "%COUNT:~-4,4%"=="\x0A" && set "count=%count:~0,15%" && set eol=\x0A && goto :countloop2
 if /i "%COUNT:~-4,4%"=="\x0D" && set "count=%count:~0,15%" && set eol=\x0D && goto :countloop2
 :countloop2
-if %STOP%==Y && set PRINT=
+if %PRINT%==Y && set found= && raw cat --skip=%skip% --locate%i%="%bol%%%count%%%eol%" --number=1 %FILE% > nul &; set /A skip=%?% && set found=Y && set /a result=%result%+1 && call :printline
 if %PRINT%==Y && if %found%==Y && set /a skip=%skip%+%countlen%+1 &; if %skip%<=%skipmax% && if %skip%<=%SIZE% && goto :countloop2
 if not %PRINT%==Y && raw cat --locate%i%="%bol%%%count%%%eol%" --length=%SIZE% %FILE% > nul &; set /a result=%@retval%
 :countloopend
 if not exist result && set result=0
-if %STOP%==Y && call :Fn.5 0 %PAGELEN% && goto :stop
 if exist NULL &; if %result%==0 && endlocal && set result= && goto :eof ! endlocal && set result=%result% && goto :eof
 if %exceslen%>=1 && set "e=-e "
 call Fn.11 "%count%" "\\" && set "e=-e "
@@ -344,67 +342,21 @@ if not /i "%COUNT:~0,8%"=="\x0D\x0A" &; if not /i "%COUNT:~0,4%"=="\x0A" if not 
 if not /i "%COUNT:~0,8%"=="\x0D\x0A" |; call :Fn.5 %h% %v% && echo -n %result% at begin of line && call :Fn.5 0 %v% && echo %e%$[0x00]"%color%%%bol%%%count:~0,46%%%eol%$[0x00]"
 if not /i "%COUNT:~-8,8%"=="\x0D\x0A" &; if not /i "%COUNT:~-4,4%"=="\x0A" if not /i "%COUNT:~-4,4%"=="\x0D" |; call :Fn.5 %h% %v% && echo -n %result% at end of line && call :Fn.5 0 %v% && echo %e%$[0x00]"%color%%%bol%%%count:~0,47%%%eol%$[0x00]"
 if not /i "%COUNT:~-8,8%"=="\x0D\x0A" |; call :Fn.5 %h% %v% && echo -n %result% at end of line && call :Fn.5 0 %v% && echo %e%$[0x00]"%color%%%bol%%%count:~0,46%%%eol%$[0x00]"
-:stop
 if %result%==0 && set result=
 endlocal && set result=%result%
 goto :eof
 
 :printline
-setlocal && set * && set FILE=%FILE% && set "COUNT=%COUNT%" && set "count=%count%" && set TSEOL=%TSEOL% && set EOLlen=%EOLlen% && set skip=%skip% && set result=%result% && set LINELEN=%LINELEN% && set PAGELEN=%PAGELEN% && set lineleft=%lineleft% && set countlen=%countlen%
-if %result%==1 && call :pagestat &; clear && set /a lineleft=%PAGELEN%-1 && set /a PAGELEN=%PAGELEN%-1
+setlocal && set * && set FILE=%FILE% && set "COUNT=%COUNT%" && set "count=%count%" && set TSEOL=%TSEOL% && set EOLlen=%EOLlen% && set skip=%skip%
 if /i "%COUNT:~0,8%"=="\x0D\x0A" && set /a skip=%skip%+2 ! if /i "%COUNT:~0,4%"=="\x0A" && set /a skip=%skip%+1 ! if /i "%COUNT:~0,4%"=="\x0D" && set /a skip=%skip%+1
 raw cat --skip=%skip% --locate=%TSEOL% --number=1 %FILE% > nul &; set /A EOLend=%?%+%EOLlen% &; raw cat --locate=%TSEOL% --length=%EOLend% %FILE% > nul &; set /a endnum=%@retval%
 if exist endnum && if not %endnum%>=2 && set /a beginnum=%endnum%-1 ! set beginnum=1 &; raw cat --locate=%TSEOL% --number=%beginnum% %FILE% > nul &; set /A EOLbegin=%?%
 if exist endnum && set /a beginnum=%endnum%-1 &; raw cat --locate=%TSEOL% --number=%beginnum% %FILE% > nul &; set /A EOLbegin=%?%
 if %endnum%==1 && set EOLbegin=0
 if exist EOLbegin && if %endnum%>=2 && set /A EOLbegin=%EOLbegin%+%EOLlen% ! set EOLbegin=0 &; set /a linelen=%EOLend%-%EOLbegin%
-if exist linelen && set /a linelen2=%linelen%+5 &; if %linelen2%<=%LINELEN% && set lineneed=1 ! set /a lineneed=%linelen2%/%LINELEN% &; if not %linelen2%<=%LINELEN% && calc %linelen2% % %LINELEN% && set /a lineneed=%lineneed%+1
-if not %lineleft%>=%lineneed% && call :Fn.5 0 %PAGELEN% && echo -n $[0x0F][Hit Q to quit, any other key to continue] && set keycode= && set /a v=%PAGELEN%-1 &; pause --test-key &; set /A keycode=%@retval% &; if not %keycode%==0x1051 && if not %keycode%==0x1071 && clear && set /a lineleft=%PAGELEN% ! endlocal && set STOP=Y && call :Fn.5 0 %PAGELEN% && echo -e -n \x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20 && goto :eof
-set /a offset=%skip%-%EOLbegin%
-if %offset%==0 && set /a length1=%countlen% && set /a skip2=%EOLbegin%+%countlen% && set /a length2=%linelen%-%countlen% ! set length1=%offset% && set /a skip2=%EOLbegin%+%offset% && set length2=%countlen% && set /a skip3=%EOLbegin%+%offset%+%countlen% && set /a length3=%linelen%-%countlen%-%offset%
 if exist endnum && call :numecho
-if %offset%==0 &; if exist linelen && if exist echonum && echo -n -e $[0x08]%echonum%\x20 && call :pipecat2echo &; if %length2%>=1 && raw cat --skip=%skip2% --length=%length2% %FILE% ! echo
-if not %offset%==0 &; if exist linelen && if exist echonum && echo -n -e $[0x08]%echonum%\x20 && raw cat --skip=%EOLbegin% --length=%length1% %FILE% && call :pipecat2echo &; if %length3%>=1 && raw cat --skip=%skip3% --length=%length3% %FILE% ! echo
-set /a lineleft=%lineleft%-%lineneed%
-endlocal && set LINELEN=%LINELEN% && set PAGELEN=%PAGELEN% && set lineleft=%lineleft%
-goto :eof
-
-:pipecat2echo
-if %offset%==0 && set pipeskip=%EOLbegin% ! set pipeskip=%skip2%
-:pipecat2echoloop
-raw cat --skip=%pipeskip% --length=1 %FILE% | echo -n $[0x70]
-set /a pipeskip=%pipeskip%+1 && set /a countlen=%countlen%-1
-if %countlen%>=1 && goto :pipecat2echoloop
-goto :eof
-
-:pagestat
-setlocal && set *
-call Fn.4 ;; set /a v=%@retval%>>8
-if %v%>=1 && set /a v=%v%-1
-set /a v0=%v%
-call Fn.5 0 %v%
-set linelen=1
-call :linelen
-call Fn.5 0 %v%
-set /a pagelen=%v%+1
-call :pagelen
-if %v%>=1 && set /a v=%v%-1 ! if %v%<=-1 && set v=0
-call Fn.5 0 %v%
-endlocal && set LINELEN=%linelen% && set PAGELEN=%pagelen%
-goto :eof
-
-:linelen
-echo -n -e \x20
-call Fn.4 ;; set /a v1=%@retval%>>8
-if %v0%==%v1% && set /a linelen=%linelen%+1 && goto :linelen
-set v1=
-goto :eof
-
-:pagelen
-call Fn.4 ;; set /a v0=%@retval%>>8
-echo -e \x20
-call Fn.4 ;; set /a v1=%@retval%>>8
-if not %v0%==%v1% && set /a pagelen=%pagelen%+1 && goto :pagelen
+if exist linelen && if exist echonum && echo -n -e $[0x08]%echonum%\x20 && raw cat --skip=%EOLbegin% --length=%linelen% %FILE%
+endlocal
 goto :eof
 
 :numecho
@@ -498,7 +450,7 @@ shift
 goto :parseswitches
 
 :help
-echo -e Help\t  TEXTSTAT.G4B v0.7.2 (20221126), by deomsh (idea P-switch: steve6375)
+echo -e Help\t  TEXTSTAT.G4B v0.7.1 (20221125), by deomsh (idea P-switch: steve6375)
 echo -e Use \t  TEXTSTAT.G4B ["]FILE["] [switches]
 echo -e Switches  /V to get output in variables too; /Q quiet operation, includes /V\n\t  ["][/]COUNT[c]:phrase["] to count 'phrase'; COUNTc: case-sensitive\n\t  /P to print counted 'phrase'-lines to screen (not mixed EOL's or /Q)\n\t  [/]MDBASE:startsector - >=0x3000 (default), max 511 sectors used
 echo -e Remarks\t  FILE must be a textfile, max 261632 bytes (255,5 KB/ 511 sectors)\n\t  Switches are not case-sensitive and order is free (but after FILE)
@@ -512,10 +464,10 @@ if exist message && goto :eof
 echo -e \t  Vars: TSSIZE TSLINES TSTXTYPE TSLABELS TSHASH TS_HASH TS2COL TS_2COL\n\t  TS_SCOL_ TSREM TS_REM_ TSBSPACE TSESPACE TSMAXLEN TSZEROS TSCOUNT
 echo -e \t  Var 'result' only (same as TSCOUNT): ["][/]COUNT[c]:phrase["] /Q
 echo -e Example   /TEXTSTAT.G4B (fd0)/TEXTSTAT.G4B
-echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B /V \x3B\x3B set TS
+echo -e Example   (hd0,0)/TEXTSTAT.G4B (hd1,0)/TEXTSTAT.G4B
 echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:if
 echo Example   TEXTSTAT.G4B TEXTSTAT.G4B "COUNT:if \x22"
-echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\\x0Aif$[0x00]"$[]/Q \x3B\x3B set result
+echo Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x0Aif
 echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNT:example
 echo -e Example   TEXTSTAT.G4B TEXTSTAT.G4B /COUNTc:example
-echo Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x25@retval\x25 /P
+echo Example   TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x25@retval\x25
