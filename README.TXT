@@ -46,8 +46,6 @@ Example  TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x5C\\x7825@retval\\x5C\\x7825
 Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen: Help - (last) Example
 
-General Remark: grub4dos scripts can normally be ended with Ctrl+C (case of interrupt printing of counted lines with switch /P)
-
 History
 v0.7.2
 Interrupt [Hit Q...] is working to abort further printing to screen of lines containing counted 'phrase' and exit script
