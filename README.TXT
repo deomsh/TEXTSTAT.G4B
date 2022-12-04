@@ -82,3 +82,33 @@ Function Display first line of text-file 'FILE' containing file-name
 Use1     VERSION.G4B ["]FILE["]
 Use2     VERSION.G4B grub4dos
 Remark   Without device/ path: file-name is searched on ROOT ('/' not needed, except if file-name is 'grub4dos')
+
+BONUS II
+
+PAGESTAT.G4B v0.2 (20221204), by deomsh
+Function Get GRUB4dos/efi and version
+         Get graphicsmode
+         Get number of chars on a line 
+         Get number of lines on screen
+         Get number of printable chars on one screen (without scrolling 1 less)
+         Get length of tab (\\t or '09')
+         Get number of columns
+Use      PAGESTAT.G4B [switch|/?]
+Remarks  Switch /V stats exported as variables: GRUB GRUBVER GRPHMODE LINELEN PAGELEN TABLEN COLUMNS CHARS
+         /Q same, but quiet operation
+         /T to see output of Fn.4 (horizontal at column 0)
+         /W test writing of all ASCII chars, one grey space after
+         /W1 same, blank space before. /W2 as /W, highlight x after. /W3 as /W, blank space after
+
+History:
+v0.2
+Added 'real' count of chars on page
+Added count of tablen
+Added count of columns
+Added /V-switch
+Added /T-switch
+Added /w-switches
+Added try GRUB4dos/efi + version
+
+v0.1
+First published version
