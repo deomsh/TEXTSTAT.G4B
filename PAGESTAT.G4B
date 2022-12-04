@@ -1,5 +1,5 @@
 !BAT
-#-#+ PAGESTAT.G4B v0.2A_VBox (20221204), by deomsh
+#-#+ PAGESTAT.G4B v0.2 (20221204), by deomsh
 #-#+ Function: get graphicsmode, get number of chars on a line, get number of lines on a screen, get number of printable chars on a screen, get length of tab (\t or '09'), and get number of columns
 #-#+ Use: PAGESTAT.G4B [switch|/?]
 #-#+ Switches: /V to export pagestats: GRUB GRUBVER GRPHMODE LINELEN PAGELEN CHARS TABLEN COLUMNS. /Q same, but quiet operation. /T to see output of Fn.4 (horizontal aat column 0). /W to test writing of all ASCII characters and grey space after code too. /W1 same, but before code a blank space, /W2 same as /W, but after code a highlighted x, /W3 same as /W, but after a code a blank space
