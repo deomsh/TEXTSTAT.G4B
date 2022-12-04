@@ -103,11 +103,11 @@ Remarks  Switch /V stats exported as variables: GRUB GRUBVER GRPHMODE LINELEN PA
 History:
 v0.2
 Added 'real' count of chars on page
-Added count of tablen
+Added count of tab length
 Added count of columns
 Added /V-switch
 Added /T-switch
-Added /w-switches
+Added /W-switches
 Added try GRUB4dos/efi + version
 
 v0.1
