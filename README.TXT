@@ -46,7 +46,7 @@ Example  TEXTSTAT.G4B TEXTSTAT.G4B COUNT:\x5C\\x7825@retval\\x5C\\x7825
 Help     TEXTSTAT.G4B [/?]
          Prints lines above to screen: Help - (last) Example
 
-BTW Written for grub4dos 0.46a (legacy), not tested on grub4efi.
+BTW Written for grub4dos 0.4.6a (legacy), not tested on grub4efi.
 If use with grub4efi gives problems, try graphics mode. Command: graphicsmode -1 640 (or -1 800 or -1 1024)
 If graphics mode gives problems, try text mode. Command: graphicsmode 3
 
