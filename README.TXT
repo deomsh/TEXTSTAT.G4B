@@ -95,7 +95,7 @@ Function Get GRUB4dos/efi and version
          Get number of chars on a line 
          Get number of lines on screen
          Get number of printable chars on one screen (without scrolling 1 less)
-         Get length of tab (\\t or '09')
+         Get length of tab (\t or '09')
          Get number of columns
 Use      PAGESTAT.G4B [switch|/?]
 Remarks  Switch /V stats exported as variables: GRUB GRUBVER GRPHMODE LINELEN PAGELEN TABLEN COLUMNS CHARS
