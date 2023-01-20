@@ -1,9 +1,9 @@
 !BAT
-#-#+ PAGESTAT.G4B v0.2 (20221204), by deomsh
-#-#+ Function: get graphicsmode, get number of chars on a line, get number of lines on a screen, get number of printable chars on a screen, get length of tab (\t or '09'), and get number of columns
+#-#+ PAGESTAT.G4B v0.3 (20230120), by deomsh
+#-#+ Function: get graphicsmode, get number of chars on a line, get number of lines on a screen, get number of printable chars on a screen, get length of tab (\t or '09'), and get number of collumns
 #-#+ Use: PAGESTAT.G4B [switch|/?]
-#-#+ Switches: /V to export pagestats: GRUB GRUBVER GRPHMODE LINELEN PAGELEN CHARS TABLEN COLUMNS. /Q same, but quiet operation. /T to see output of Fn.4 (horizontal aat column 0). /W to test writing of all ASCII characters and grey space after code too. /W1 same, but before code a blank space, /W2 same as /W, but after code a highlighted x, /W3 same as /W, but after a code a blank space
-#-# Remark: Without scrolling number of printable chars on screen is 1 less. 
+#-#+ Switches: /V to export pagestats: GRUB VERSION GRPHMODE LINELEN PAGELEN CHARS TABLEN COLLUMN. /Q same, but quiet operation. /T to see output of Fn.4 (horizontal aat collumn 0). /W to test writing of all ASCII characters and grey space after too. /W1 same, but after a blank space, /W2 same as /W, but after a highlighted x
+#-# Remarks: Without scrolling number of printable chars on screen is 1 less
 if "%~1"=="/?" && goto :help
 setlocal && set *
 debug 1
@@ -13,7 +13,9 @@ set /a g4dver=*0x8278 > nul
 if exist @uefi && set GRUB=GRUB4EFI ! set GRUB=GRUB4DOS
 graphicsmode > nul ;; set /A grphmode=%@retval%
 pager off
-set FILENAME=%0 %*
+set FILENAME=%0
+#FINAL#
+if exist @uefi && call :checkFn.4 &; set /a chars=%linelen% * %pagelen% && goto :donelen
 call Fn.4 ;; set /a v=%@retval%>>8
 if %v%>=1 && set /a v=%v%-1
 set /a v0=%v%
@@ -26,32 +28,33 @@ call :pagelen
 call Fn.5 0 %v%
 call :tablen
 call Fn.5 0 %v%
-call :columns
+call :collumns
+set /a checkcol=%linelen%/%tablen%-%collumn% &; if not %checkcol%==0 && set /a collumn=%collumn%-1
 clear
 set chars=0
 set /a vmax=%pagelen%-1
 call :chars
 #ORG#set /a chars=%linelen% * %pagelen%
 if %v%>=1 && set /a v=%v%-1
+:donelen
 set /a vmax=%pagelen%-3
-#NOTaftercallchar#if not %v%>=%vmax% && call Fn.5 0 %v% ! clear
+#NOTaftercallchar#if not %v%>=%vmax% && call Fn.5 0 %v% !
 if /i "%~1"=="/T" && set q=Y && set test=Y && call :test
 if /i "%~1"=="/W" && set q=Y && set test=Y && set ASCII=0x0 && pager on && echo && echo -n -e %GRUB% VERSION %g4dver% && echo -e \x20\x20GRAPHICSMODE\t%grphmode%  ASCII chars && set col=$[0x80] && call :write &; pager off
 if /i "%~1"=="/W1" && set q=Y && set test=Y && set ASCII=0x0 && pager on && echo && echo -n -e %GRUB% VERSION %g4dver% && echo -e \x20\x20GRAPHICSMODE\t%grphmode%  ASCII chars after blank space && set blackdbq=$[]\x20$[]\x20 && set col=$[0x80] && set space=\x20 && call :write &; pager off
 if /i "%~1"=="/W2" && set q=Y && set test=Y && set ASCII=0x0 && pager on && echo && echo -n -e %GRUB% VERSION %g4dver% && echo -e \x20\x20GRAPHICSMODE\t%grphmode%  ASCII chars after blank space && set blackdbq=$[]\x20$[]\x20 && set col=$[0x0F]x && call :write &; pager off
 if /i "%~1"=="/W3" && set q=Y && set test=Y && set ASCII=0x0 && pager on && echo && echo -n -e %GRUB% VERSION %g4dver% && echo -e \x20\x20GRAPHICSMODE\t%grphmode%  ASCII chars, blank space after && set col=$[0x80] && set space=\x20 && call :write &; pager off
-#BAD#if not %test%==Y && if not %v%>=%vmax% && call Fn.5 0 %v%
 if not %test%==Y && clear
 debug msg=1
-if not %test%==Y && echo grub> %FILENAME%
-#ORG#echo grub> %FILENAME%%%echoq%
+if not %test%==Y && echo grub> %FILENAME%%%echoq%
 if not %q%==Y &; if %grphmode%<=0xF && set grspace=\x20\x20 ! if %grphmode%<=0xFF && set grspace=\x20
 if not %q%==Y &; if %linelen%<=99 && set lnspace=\x20
 if not %q%==Y &; if %chars%<=999 && set chspace=\x20\x20 ! if %chars%<=9999 && set chspace=\x20
 if not %q%==Y &; if %tablen%<=9 && set tbspace=\x20\x20\x20\x20 ! if %tablen%<=99 && set tbspace=\x20\x20\x20 ! set tbspace=\x20\x20
-if not %q%==Y &; if %column%<=9 && set clspace=\x20
-if not %q%==Y && echo && echo -e GRUB4%GRUB:~-3,3% version:\t     %g4dver% && echo -e Graphicsmode:\t\t\t%grspace%%%grphmode% && echo -e Number of chars on a line:\t\x20\x20%lnspace%%%linelen% && echo -e Number of lines on a page:\t\x20\x20\x20%pagelen% && echo -e Number of chars in a tab:\t%tbspace%%%tablen% && echo -e Number of columns on a page:\t\x20\x20\x20%clspace%%%column% && echo -e Number of chars on a page:\t%chspace%%%chars% && echo && if not /i %~1==/V && set *
-endlocal && set GRUB=%GRUB% && set GRUBVER=%g4dver% && set GRPHMODE=%grphmode% && set LINELEN=%linelen% && set PAGELEN=%pagelen% && set TABLEN=%tablen% && set COLUMNS=%column% && set CHARS=%chars%
+if not %q%==Y &; if %collumn%<=9 && set clspace=\x20
+if not %q%==Y && if not %checkFn4%==Y && echo && echo -e %GRUB% VERSION %g4dver% && echo -e Graphicsmode:\t\t\t%grspace%%%grphmode% && echo -e Number of chars on a line:\t\x20\x20%lnspace%%%linelen% && echo -e Number of lines on a page:\t\x20\x20\x20%pagelen% && echo -e Number of chars in a tab:\t%tbspace%%%tablen% && echo -e Number of collumns on a page:\t\x20\x20\x20%clspace%%%collumn% && echo -e Number of chars on a page:\t%chspace%%%chars% && echo && set *
+if not %q%==Y && if %checkFn4%==Y && echo && echo -e %GRUB% VERSION %g4dver% && echo -e Graphicsmode:\t\t\t%grspace%%%grphmode% && echo -e Number of chars on a line:\t\x20\x20%lnspace%%%linelen% && echo -e Number of lines on a page:\t\x20\x20\x20%pagelen% && echo -e Number of chars in a tab:\t%tbspace%%%tablen% && echo -e Number of collumns on a page:\t\x20\x20\x20%clspace%%%collumn% && echo -e Calculation of chars on a page:\t%chspace%%%chars% && echo && set *
+endlocal && set GRPHMODE=%grphmode% && set LINELEN=%linelen% && set PAGELEN=%pagelen% && set CHARS=%chars% && set TABLEN=%tablen% && set COLLUMN=%collumn%
 goto :eof
 
 :linelen
@@ -77,55 +80,84 @@ if not %v1%>=%vmax% && goto :chars
 goto :eof
 
 :tablen
-#	##	###	####	#####	######	#######	########	END (TABLEN=8 in NOTEPAD)
 call Fn.4 ;; set /a h0=%@retval% ;; set /a v0=%h0%>>8
 echo -e -n \t
 call Fn.4 ;; set /a h1=%@retval% ;; set /a v1=%h1%>>8
 set /a tablen=%h1%-%h0%
 goto :eof
 
-:columns
+:collumns
 call Fn.4 ;; set /a h0=%@retval% ;; set /a v0=%h0%>>8
-set column=0
-:columnsloop
+set collumn=0
+:collumnsloop
 echo -e -n \t
 call Fn.4 ;; set /a h1=%@retval% ;; set /a v1=%h1%>>8
-set /a column=%column%+1
-if %v1%==%v0% && goto :columnsloop
+set /a collumn=%collumn%+1
+if %v1%==%v0% && goto :collumnsloop
 goto :eof
 
 :test
-#-#+ TEST for V&H cursor coordinates
+#TESTforV&H#
 clear
 set /a pageend=%pagelen%-2
 set v=0
 call Fn.5 0 %v%
-call Fn.4 ;; set /a h=%@retval% ;; set /a v=%h%>>8 ;; set /a line=%v%+1
-if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\t\x20%GRUB% VERSION %g4dver% GRAPHICSMODE %grphmode% ! echo -e h=%h%\x20\x20\x20\x20v=%v%\x20\x20line=%line%  G4%GRUB:~-3,1% %g4dver% %grphmode%
+call Fn.4 ;; set /a h=%@retval% &; if not exist @uefi && set /a v=%h%>>8 ! set v=%v% &; set /a line=%v%+1
+if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\t\x20%GRUB% VERSION %g4dver% GRAPHICSMODE %grphmode% && set /a v=%v%+1 ! echo -e c=%h%\x20\x20\x20\x20v=%v%\x20\x20line=%line%  G4%GRUB:~-3,1% %g4dver% %grphmode% && set /a v=%v%+1
 :Fn4loop
-call Fn.4 ;; set /a h=%@retval% ;; set /a v=%h%>>8 ;; set /a line=%v%+1
+call Fn.5 0 %v%
+call Fn.4 ;; set /a h=%@retval% &; if not exist @uefi && set /a v=%h%>>8
+set /a line=%v%+1
 if %h%<=99 && set hchar=\x20\x20 ! if %h%<=999 && set hchar=\x20 ! set hchar=
 if %v%==0 && set vchar=\x20\x20\x20 ! if %v%<=9 && set vchar=\x20\x20 ! if %v%>=10 && set vchar=
-if not %v%>=%pageend% &; if not %v%==3 && if not %v%==5 && if not %v%==8 && if not %v%==10 && if not %v%==12 && if not %v%==14 && if not %v%==16 && if not %v%==18 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%>=%pageend% && set /a h=%h%+256 && set /a line=%v%+1 &; if %linelen%>=80 && echo -e -n h=%h%\tv=%v%\tline=%line%\x20\x20 && set /a v=%v%+1 ! echo -e -n h=%h%%%hchar% v=%v% line=%line%\x20 && set /a v=%v%+1
-if %v%==3 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 25 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20/\x20256\x20=>\x20 && set /a v=%h% / 256 &; echo $[0x70]v=%v% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==5 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 30 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20/\x20256\x20=>\x20 && set /a v=%h% / 256 &; echo $[0x70]v=%v% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==8 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 25 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==10 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 30 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==12 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 35 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==14 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 40 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==16 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 45 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-if %v%==18 && if %linelen%>=80 && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 49 %v% && call Fn.4 &; set /a h=%@retval% &; echo -n -e $[0x80]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x70]h=%h% && set /a v=%v%+1 ! echo -e h=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && set /a v=%v%+1
-#OKE#if not %v%>=%pageend% && echo -e h=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 ! if %linelen%>=80 && echo -e -n h=%h%\tv=%v%\tline=%line%\x20\x20 && set /a v=%v%+1 ! echo -e -n h=%h%\tv=%v%\tline=%line% && set /a v=%v%+1
-#OKE#if not %v%>=%pageend% && echo -e line=%line% h=%h% v=%v% pagelen=%pagelen% pageend=%pageend%\x20\x20\x20\x20 ! pause line=%line% h=%h% v=%v% pagelen=%pagelen% pageend=%pageend% && set /a v=%v%+1
-if not %v%>=%pageend% && goto :Fn4loop
+if not %v%>=%pageend% &; if not %v%==3 && if not %v%==5 && if not %v%==8 && if not %v%==10 && if not %v%==12 && if not %v%==14 && if not %v%==16 && if not %v%==18 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20
+if %v%==3 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 25 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 25 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]v$[]=%h%\x20/\x20256\x20=>\x20 && set /a V=%h% / 256 &; echo $[0x0F]v=%V%
+if %v%==5 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 30 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 30 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]v$[]=%h%\x20/\x20256\x20=>\x20 && set /a V=%h% / 256 &; echo $[0x0F]v=%V%
+if %v%==8 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 25 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 25 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a H=%h% % 256 &; echo $[0x0F]h=%H%
+if %v%==10 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 30 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 30 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a H=%h% % 256 &; echo $[0x0F]h=%H%
+if %v%==12 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 35 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 31 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a H=%h% % 256 &; echo $[0x0F]h=%H%
+if %v%==14 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 40 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 32 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a H=%h% % 256 &; echo $[0x0F]h=%H%
+if %v%==16 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 45 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 33 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a H=%h% % 256 &; echo $[0x0F]h=%H%
+if %v%==18 &; if %linelen%>=80 && echo -e c=%h%\tv=%v%\tline=%line%\x20\x20\x20\x20 && call :Fn.5 49 %v% ! echo -e c=%h%%%hchar% v=%v%%%vchar%line=%line%\x20 && call :Fn.5 34 %v% &; call Fn.4 &; set /a h=%@retval% &; if %linelen%>=80 && echo -n -e $[0xF0]h$[]=%h%\x20%\x20256\x20=>\x20 && set /a h=%h% % 256 &; echo $[0x0F]h=%h%
+if not %v%>=%pageend% && set /a v=%v%+1 && goto :Fn4loop ! call Fn.5 0 %v%
 if %linelen%>=80 && echo -e PAGELEN=%pagelen%  LINELEN=%linelen%  TABLEN=%tablen%  CHARS=%chars% ! echo -e PL=%pagelen% LL=%linelen% TL=%tablen%
-#OKE#if %linelen%>=80 && echo -e %GRUB% VERSION %g4dver% GRAPHICSMODE %grphmode%
-call Fn.5 0 %v%
 goto :eof
 
 :Fn.5
 call Fn.5 %~1 %~2
+goto :eof
+
+:checkFn.4
+pager off
+setlocal
+clear
+set a=0 && set b=1 && set bmax=256
+call Fn.4 ;; set /a T%a%=%@retval%
+echo -n -e \t && call Fn.4 &; set /a T%b%=%@retval%
+call set /a tablen=%^T%b%%%-%^T%a%%%
+call set T%a%=%^T%b%%% && set /a a=%a%+1 && set /a b=%b%+1
+:collumnloop
+echo -n -e \t && call Fn.4 &; set /a T%b%=%@retval%
+call set /a len=%^T%b%%%-%^T%a%%% &; if not %b%>=%bmax% && if %len%==%tablen% && call set T%a%=%^T%b%%% && set /a a=%a%+1 && set /a b=%b%+1 && goto :collumnloop
+clear
+set t=0
+:tabloop
+if not %t%>=%a% && echo -n -e \t && set /a t=%t%+1 && goto :tabloop
+call Fn.4 &; set /a cursor=%@retval% &; set T0=%cursor% && call Fn.5 %cursor% 0
+set a=0 && set b=1 && set c=0
+:linelenloop
+echo -n -e \x20 && call Fn.4 &; set /a T%b%=%@retval%
+call set /a len=%^T%b%%%-%^T%a%%% && set /a a=%a%+1 && set /a c=%c%+1
+if %c%<=%tablen% && if %len%==1 && call set T%a%=%^T%b%%% && set /a b=%b%+1 && goto :linelenloop
+call Fn.4 &; set /a cursor=%@retval%
+set /a linelen=%t% * %tablen% + %c% &; set /a collumn=%linelen%/%tablen%
+clear
+set cursor0=0 && set c=1
+:pagelenloop
+echo && call Fn.4 &; set /a cursor=%@retval%
+if not %cursor%==%cursor0% && set /a c=%c%+1 && set cursor0=%cursor% && set cursor= && goto :pagelenloop
+set pagelen=%c%
+endlocal && set pagelen=%pagelen% && set collumn=%collumn% && set linelen=%linelen% && set tablen=%tablen% && set checkFn4=Y
 goto :eof
 
 :write
@@ -139,8 +171,8 @@ goto :eof
 
 :help
 pager on
-echo PAGESTAT.G4B v0.2 (20221204), by deomsh
-echo -e Function get GRUB4dos/efi and version\n         get graphicsmode\n         get number of chars on a line\n         get number of lines on screen\n         get number of printable chars\n          on one screen\n           (without scrolling 1 less)\n         get length of tab (\\t or '09')\n         get number of columns
+echo PAGESTAT.G4B v0.3 (20230120), by deomsh
+echo -e Function get GRUB version\n         get graphicsmode\n         get number of chars on a line\n         get number of lines on screen\n         get number of printable chars\n          on one screen\n          (without scrolling 1 less)\n         get length of tab (\\t or '09')\n         get number of collumns
 echo Use      PAGESTAT.G4B [switch|/?]
-echo -e Remarks  Switch /V stats exported as\n         variables: GRUB GRUBVER\n          GRPHMODE LINELEN PAGELEN\n          TABLEN COLUMNS CHARS\n         /Q same, but quiet operation\n         /T to see output of Fn.4\n          (horizontal at column 0)\n         /W test writing of all ASCII\n          chars, one grey space after\n         /W1 same, blank space before\n         /W2 as /W, highlight x after\n         /W3 as /W, blank space after
+echo -e Remarks  Switch /V stats exported as\n         variables: GRUB VERSION\n          GRPHMODE LINELEN PAGELEN\n          TABLEN COLLUMN CHARS\n         /Q same, but quiet operation\n         /T to see output of Fn.4\n          (horizontal at collumn 0)\n         /W test writing of all ASCII\n          chars between grey spaces\n         /W1 same, after a blank space\n         /W2 as /W, + highlighted x\n         /W3 as /W, + blank space
 pager off
