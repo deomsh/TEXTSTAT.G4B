@@ -130,6 +130,7 @@ Remarks  Switch /V stats exported as variables: GRUB GRUBVER GRPHMODE LINELEN PA
 
 History:
 v0.3
+Bugfix number of columns
 Better compatibility with grub4efi
 
 v0.2
