@@ -67,6 +67,9 @@ BTW Written for grub4dos 0.4.6a (legacy), tested on grub4efi
 If use with grub4efi gives problems, try graphics mode. Command: graphicsmode -1 640 (or -1 800 or -1 1024)
 If graphics mode gives problems, try text mode. Command: graphicsmode 3
 
+KNOWN BUGS (in latest version, so far unresolved)
+line-number(s) with spaces at end-of-line: displayed one number too high in case of EOL Unix/ Mac
+
 History
 v0.8
 Max file-size raised to 2 MB
