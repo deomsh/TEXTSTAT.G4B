@@ -14,7 +14,7 @@ optional: print lines containing counted phrases (with extra switch)
 optional: quiet operation, export number of counted phrases as 'result' only (with extra switch)
 optional: read text files - fully or a range (with extra switch)
 
-Help     TEXTSTAT.G4B v0.8 (20230120), by deomsh (idea P-switch: steve6375)
+Help     TEXTSTAT.G4B v0.8.1 (20250802), by deomsh (idea P-switch: steve6375)
 Use      TEXTSTAT.G4B ["]FILE["] [switches]
 Switches ["][/]COUNT[c]:phrase["] to count 'phrase', COUNTc: case-sensitive
          ["][/][N]A:phraseA["] [not] count if 'phrase' is just after phraseA
@@ -71,6 +71,9 @@ KNOWN BUGS (in latest version)
 line-number(s) with spaces at end-of-line displayed ONE number too high in case of EOL's Unix/ Mac
 
 History
+v0.8.1
+BUGFIX: switch ["][/]COUNT[c]:phrase["] always case-sensitive with / (in [/])
+
 v0.8
 Max file-size raised to 2 MB
 If printing all counted phrases in smae line printed together
