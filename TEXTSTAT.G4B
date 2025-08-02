@@ -1,5 +1,5 @@
 !BAT
-#-#+ TEXTSTAT.G4B v0.8 (20230120), by deomsh (idea of P-switch by steve6375)
+#-#+ TEXTSTAT.G4B v0.8.1 (20250802), by deomsh (idea of P-switch by steve6375)
 #-#+ Function: count zeros before last EOL, count lines (with EOL & Text-type), labels, remark(ed)-lines and returns line-number(s) with spaces at begin/ end-of-line, count chars of longest line, optional: output of counted variables with /V, quiet mode with /Q (includes /V), count phrases with switch ["]/COUNT[c]:phrase["] (COUNTc for case-sensitive), filter with /[N]A|B:phraseA|B and near-range /R[N]A|B:n, and/ or offset /O[N]A|B:n (n>=1), print counted lines to screen with /P, read with /R[:s[-n]] or /R[:s[:n]]
 #-# Use 1: TEXTSTAT.G4B [/?]
 #-# Use 2: TEXTSTAT.G4B ["]FILE["] [switches]
@@ -15,7 +15,6 @@ graphicsmode > nul &; set /a grphmode=%@retval% && pager on
 set highcol=$[0x70] && set lowcol=$[0x80]
 set hitxtcol=$[0x0F] && set lotxtcol=$[0x08] && set nocol=$[0x00]
 set aftercol=$[0x80] && set beforcol=$[0x80]
-#grub4eficangive:malloc0_with0x300+2???#BETTER:mdmin=0x22000!
 if exist @uefi && set mdwork=0x221 ! set mdwork=0x300
 #COLORTEST#set aftercol=$[0xCE] && set beforcol=$[0x9E] && set highcol=$[0xE9]
 set ARG=%~1
@@ -55,7 +54,6 @@ if %filelen%==0 && set "message1=Abort: %~nx2 is a Zero-byte File (or possibly a
 call Fn.11 %filename% " " && echo %NULL% && echo %device%/%pathfile:~2,-1%%%NULL% && echo Size               %filelen% bytes%NULL% && if not %filelen%<=2m && set "message1=%filename%>2MB - not supported!" && goto :endlocal
 call Fn.11 %filename% " " || echo %NULL% && echo %filename%%%NULL% && echo Size               %filelen% bytes%NULL% && if not %filelen%<=2m && set "message1=%filename%>2MB - not supported!" && goto :endlocal
 if exist @uefi && set mdmin=0x22000 ! set mdmin=0x3000
-#ORG#if exist @uefi && set mdmin=0x21000 ! set mdmin=0x3000
 if exist MDBASE && if not %MDBASE%>=%mdmin% && set "message1=Abort: MDBASE can not be set below %mdmin%, max 4096 sectors needed (current filesize: %filelen% bytes)" && goto :endlocal
 if exist MDBASE && set mdbase=%MDBASE% && set MDBASE= ! set mdbase=%mdmin% && set mdmin=
 set /a readsect=%filelen%/512 &; calc %filelen% % 512 && set /a readsect=%readsect%+1
@@ -64,6 +62,7 @@ raw dd if=%filename% of=%FILE% bs=1 count=%filelen% > nul
 call :CntZeros %FILE% "dos" %filelen% &; if exist result && set zeros=%result% && set result=
 if %zeros%>=1 && set "message1=Abort: binary File, contains %zeros% zeros before last EndOfLine marker" && goto :endlocal
 call :CntLine %FILE% "dos" %filelen% &; if exist result && set dos=%result% && set result=
+echo call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
 call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
 call :CntLine %FILE% "mac" %filelen% &; if exist result && set mac=%result% && set result=
 if %dos%>=1 && if %unix%==%dos% && if %unix%==%mac% && set texttype=dos && set TSLINES=%dos% && set TSTXTYPE=MSDOS && set TSEOL=\x0D\x0A && echo Number of Lines    %dos%%%NULL% && echo EndOfLine marker   CR+LF (0D0A)%NULL% &; if %zeros%==0 && echo Text File Type     MS-DOS%NULL%
@@ -103,7 +102,6 @@ set TSMAXLEN=%MAXLEN%
 if %PRINT%==Y && if not exist q && if %TSTXTYPE%==MIXED_EOL && if %TSCOUNT%>=1 && set "message1=Abort: %TSTXTYPE% - only printing of counted lines for MS-DOS, UNIX or MAC text-files"
 if exist message &; set STATOUT= && if not exist q && if exist READ && echo %nocol%"%highcol%%%message:~0,70%
 if exist message &; set STATOUT= && if not exist q && if not exist READ && echo $[] Abort: unsupported char(s) in 'phrase' of switch ["][/]COUNT[c]:phrase["] &; if /i "%message:~0,6%"=="COUNT:" && echo %nocol%"%highcol%%%message:~6,78% ! if /i "%message:~0,6%"=="COUNTc" && echo %nocol%"%highcol%%%message:~7,78% ! echo %nocol%"%highcol%%%message:~0,78%
-#UNLOCKED#
 if exist message && if not exist q && if not exist READ && echo -n && set t=\x20 && set "resetcol=$[] " && call :messagehelp
 if exist message1 && call :Fn11 /i "\x20/Q" "%message1%"
 if exist message1 && if %result%==1 && set q=q
@@ -118,7 +116,6 @@ if %zeros%>=1 && set TSZEROS=%zeros%
 endlocal && set result=%result% && set TSZEROS=%TSZEROS% && set TSCOUNT=%TSCOUNT% && set TSSIZE=%TSSIZE% && set TSLINES=%TSLINES% && set TSEOL=%TSEOL% && set TSTXTYPE=%TSTXTYPE% && set TSLABELS=%TSLABELS% && set TSHASH=%TSHASH% && set TS_HASH=%TS_HASH% && set TS2COL=%TS2COLON% && set TS_2COL=%TS_2COL% && set TSSCOL_=%TSSCOL_% && set TS_SCOL_=%TS_SCOL_% && set TSREM=%TSREM% && set TS_REM_=%TS_REM_% && set TSBSPACE=%TSBSPACE% && set TSESPACE=%TSESPACE% && set TSMAXLEN=%TSMAXLEN% && set "message=%message%"
 debug msg=3
 goto :eof
-
 ::----------------------------------------------------------------------------------------------------------------------------
 :: SUB-ROUTINES
 ::----------------------------------------------------------------------------------------------------------------------------
@@ -137,7 +134,7 @@ set result=%count1% && set /a result=%count1%-%count2%
 if %result%==0 && set result=
 endlocal && set result=%result%
 goto :eof
-
+::
 :CntLine
 #-#+ Count lines in textfile; Argument: FILE; Optional: dos|unix|mac; Default: dos
 setlocal && set *
@@ -148,7 +145,7 @@ if /i "%~2"=="mac" && set EOL=\x0D &; raw cat --locate=%EOL% --length=%~3 %FILE%
 if not exist result && set /a result=0
 endlocal && set result=%result%
 goto :eof
-
+::
 :CntSpaceEOL
 #-#+ CntSpaceEOL <FILE> <dos|unix|mac>
 #-# Count number of lines in textfile with space directly before EOL
@@ -178,7 +175,7 @@ if not %reslen%<=500 && set "result=%result:~0,-4%...."
 if %result%==0 && set result=
 endlocal && set result=%result% && set count=%count%
 goto :eof
-
+::
 :CntSpaceBOL
 #-#+ CntSpaceBOL <FILE> <dos|unix|mac>
 #-# Count number of lines in textfile with space directly after EOL
@@ -212,7 +209,7 @@ if not %reslen%<=500 && set "result=%result:~0,-4%...."
 if %result%==0 && set result=
 endlocal && set result=%result% && set count=%count%
 goto :eof
-
+::
 :CntRemarkLine
 #-#+ CntRemarkLine <FILE> <"remark">
 #-# Count remarks in textfile
@@ -228,7 +225,7 @@ raw cat --locatei="\x0D%~2" --length=%~3 %FILE% > nul ;; set /a result=%result%+
 if %result%==0 && set result=
 endlocal && set result=%result%
 goto :eof
-
+::
 :CntRemark
 #-#+ CntRemarkLine <FILE> <"remark">
 #-# Count remarks in textfile
@@ -243,7 +240,7 @@ if not "%~2"=="\x00" |; raw cat --locatei="%~2" --length=%~3 %FILE% > nul &; set
 if %result%==0 && set result=
 endlocal && set result=%result%
 goto :eof
-
+::
 :CntZeros
 #-#+ CntZeros <FILE> <"remark">
 #-# Remarks: "remark" = specific remark-char(s)
@@ -258,7 +255,7 @@ if not exist unix &; if %mac%<=%~3 && set lastEOL=%mac% ! set lastEOL=%~4
 raw cat --locate=\x00 --length=%lastEOL% %FILE% > nul ;; set /a result=%@retval%
 endlocal && set result=%result%
 goto :eof
-
+::
 :MaxLen
 setlocal && set *
 set FILE=%~1
@@ -274,7 +271,7 @@ if exist length && set /a skip=%skip%+%length%+%add% > nul && set length= && got
 if exist maxlen && set result=%maxlen% ! set result=
 endlocal && set result=%result%
 goto :eof
-
+::
 :cleanmem
 #-#+ Clean memory with call Fn.24 and fill '00' (from FATTEXT.G4B)
 #-# Use: start-sector: %~1, sectors to clean: %~2, skip bytes: %~3 (without skip set to 0x0)
@@ -286,7 +283,7 @@ set /A basemd=%basemd% * 0x200 + %skipmem%
 set /A memrange=%memrange% * 0x200 - %skipmem%
 call Fn.24 %basemd% 0x00 %memrange%
 endlocal && goto :eof
-
+::
 :count
 #-#+ COUNT: function to count phrases in text lines. With switch /P printing to screen too
 setlocal && set * && set grphmode=%grphmode% && set mdbase=%mdbase% && set mdwork=%mdwork% && set FILE=%FILE% && set SIZE=%filelen% && set i=%i% && set TSEOL=%TSEOL% && set "NULL=%NULL%" && set q=%q% && set PRINT=%PRINT% && set "COUNT=%COUNT%" && set print=%print% && set cmdlen=%cmdlen% && set highcol=%highcol% && set lowcol=%lowcol% && set hitxtcol=%hitxtcol% && set lotxtcol=%lotxtcol% && set nocol=%nocol% && set "NOCOUNTA=%NOCOUNTA%" && set offsetNA=%offsetNA% && set "NOCOUNTB=%NOCOUNTB%" && set offsetNB=%offsetNB% && set "NEARA=%NEARA%" && set offsetA=%offsetA% && set "NEARB=%NEARB%" && set offsetB=%offsetB% && set beforcol=%beforcol% && set aftercol=%aftercol% && set STATOUT=%STATOUT% && set roomA=%roomA% && set roomB=%roomB% && set roomNA=%roomNA% && set roomNB=%roomNB% && set "cmdfile=%cmdfile%"
@@ -491,9 +488,7 @@ if %result%>=1 && set color=%highcol%
 if %result%==0 && set color=%lowcol%
 if %PRINT%==Y && set color=%lowcol% && setlocal && call :Fn.4 &; endlocal &; set h=%h% && if exist @uefi && if %grphmode%<=0xFF && set h=%hproxy% &; if not %h%==0 && echo
 echo
-#temporaryprovisionI#
 setlocal && call :Fn.4 &; endlocal && set v=%v% && if exist @uefi && if %grphmode%<=0xFF && call Fn.4 &; set /a v=%@retval%>>4
-#temporaryprovisionII#
 if exist @uefi && if %grphmode%<=0xFF &; if %result%>=1 && set color=$[0x70] ! set color=$[0x78]
 if not exist countB && if not exist countC && set h=19 ! if exist countB && if not exist countC && set h=35 ! if exist countC && set h=51
 set bol= && set eol=
@@ -516,7 +511,7 @@ if not /i "%COUNT:~-8,8%"=="\x0D\x0A" |; call :Fn.5 %h% %v% && echo -n %result% 
 if %result%==0 && set result=
 endlocal && set result=%result%
 goto :eof
-
+::
 :printline
 setlocal && set * && set grphmode=%grphmode% && set FILE=%FILE% && set "count=%count%" && set TSEOL=%TSEOL% && set EOLlen=%EOLlen% && set skip=%skip% && set result=%result% && set PAGELEN=%PAGELEN% && set LINELEN=%LINELEN% && set lineleft=%lineleft% && set countlen=%countlen% && set lastnum=%lastnum% && set cmdlen=%cmdlen% && set highcol=%highcol% && set hitxtcol=%hitxtcol% && set lotxtcol=%lotxtcol% && set bollen=%bollen% && set eollen=%eollen% && set colfound=%colfound% && set vlast=%vlast% && set vproxy=%vproxy% && set hproxy=%hproxy% && set "cmdfile=%cmdfile%"
 if %result%==1 && call :pagestat &; set /a lineleft=%PAGELEN%-2 && set /a PAGELEN=%PAGELEN%-1 && set /a v=%v%+2 && set /a echolen=%LINELEN%-8 &; if %cmdlen%>=%echolen% && call set "cmdfile=%^cmdfile:~0,%echolen%%%>"
@@ -533,18 +528,15 @@ if %endnum%==1 && set EOLbegin=0
 if exist EOLbegin && if %endnum%>=2 && set /A EOLbegin=%EOLbegin%+%EOLlen% ! set EOLbegin=0 &; set /a linelen=%EOLend%-%EOLbegin%-%EOLlen%
 set /a countlen=%countlen%-%bollen%-%eollen% &; if not %countlen%<=48 && set countlen=48
 cat --skip=%EOLbegin% --locate=\x09 --length=%linelen% %FILE% > nul ;; set /a numtabs=%@retval%
-#ORG#cat --skip=%EOLbegin% --locate=\x09 --length=%linelen% %FILE% > nul #ORG#;; set /a numtabs=%@retval%
 set echonumL=5 &; if %endnum%>=100000 && set echonumL=7 ! if %endnum%>=10000 && set echonumL=6
 if %numtabs%>=1 && if %TABLEN%>=%echonumL% && set /a linelen2=%numtabs% * %TABLEN% - %numtabs% + %linelen% && set /a tabslen=%numtabs% * %TABLEN% - %numtabs% ! if %numtabs%>=1 && if not %TABLEN%>=%echonumL% && set /a linelen2=%numtabs% - 1 * %TABLEN% - %numtabs% + %linelen% + %echonumL% && set /a tabslen=%numtabs% - 1 * %TABLEN% - %numtabs% ! set /a linelen2=%linelen%+%echonumL% && set tabslen=0
 set /a linelen2=%linelen%+%echonumL% && if not %endnum%==%lastnum% &; if %linelen2%<=%LINELEN% && set lineneed=1 ! set /a lineneed=%linelen2%/%LINELEN% &; if not %linelen2%<=%LINELEN% && calc %linelen2% % %LINELEN% && set /a lineneed=%lineneed%+1
 if not %lineleft%>=%lineneed% && if %result%==1 && clear && set /a lineleft=%PAGELEN%-1 && set v=1 && pause --wait=0 grub> %cmdfile%
-#STARToftemporarysolution#
 if not %endnum%==%lastnum% && setlocal && call :Fn.4 &; endlocal && set h=%h%
 if not %endnum%==%lastnum% && if exist @uefi && if %grphmode%<=0xFF && set h=%hproxy%
 if not %endnum%==%lastnum% && if not %h%==0 && echo
 if not %endnum%==%lastnum% && setlocal && call :Fn.4 &; endlocal && set vlast=%v% && if exist @uefi && if %grphmode%<=0xFF && set vlast=%vproxy%
 if not %endnum%==%lastnum% && call :Fn.5 0 %vlast%
-#ENDoftemporarysolution#
 if not %lineleft%>=%lineneed% && if not %endnum%==%lastnum% && echo -n %hitxtcol%%[Hit Q to quit, other key to continue] && set STOP=N && set keycode= &; pause --test-key &; set /A keycode=%@retval%&0xff &; if not %keycode%==0x51 && if not %keycode%==0x71 && clear && set /a lineleft=%PAGELEN%-1 && set vlast=0 && set STOP= && set hproxy=0 && set vproxy=0 ! call :Fn.5 0 %vlast% && echo -e -n \x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20 && call :Fn.5 0 %vlast% && endlocal && set STOP=Y && set vlast=%vlast% && goto :eof
 set /a offset=%skip%-%EOLbegin%
 if %offset%==0 && set /a length1=%countlen% && set /a skip2=%EOLbegin%+%countlen% && set /a length2=%linelen%-%countlen% ! set length1=%offset% && set /a skip2=%EOLbegin%+%offset% && set length2=%countlen% && set /a skip3=%EOLbegin%+%offset%+%countlen% && set /a length3=%linelen%-%countlen%-%offset%
@@ -559,7 +551,7 @@ if %hproxy%>=1 && if not %linelen2%<=%LINELEN% && set /a vproxy=%vproxy%+1
 if not %endnum%==%lastnum% && set /a lineleft=%lineleft%-%lineneed%
 endlocal && set LINELEN=%LINELEN% && set PAGELEN=%PAGELEN% && set lineleft=%lineleft% && set lastnum=%endnum% && set vlast=%vlast% && set STOP=%STOP% && set vproxy=%vproxy% && set hproxy=%hproxy%
 goto :eof
-
+::
 :pipecat2echo
 if %offset%==0 && set pipeskip=%EOLbegin% ! set pipeskip=%skip2%
 :pipecat2echoloop
@@ -567,7 +559,7 @@ raw cat --skip=%pipeskip% --length=1 %FILE% | echo -n %highcol%
 set /a pipeskip=%pipeskip%+1 && set /a countlen=%countlen%-1
 if %countlen%>=1 && goto :pipecat2echoloop
 goto :eof
-
+::
 :read
 if not exist TSEOL && set "message=Abort: text-files with %TSTXTYPE% not supported" && goto :eof
 setlocal && set * && set grphmode=%grphmode% && set FILE=%FILE% && set TSLINES=%TSLINES% && set TSEOL=%TSEOL% && set read=%read% && set "cmdfile=%cmdfile%" && set cmdlen=%cmdlen% && set hitxtcol=%hitxtcol% && set lotxtcol=%lotxtcol%
@@ -587,7 +579,7 @@ if not exist TABLEN && set TABLEN=0
 call :readline
 endlocal
 goto :eof
-
+::
 :readrange
 setlocal && set * && set read=%read% && set TSLINES=%TSLINES%
 set mdbase=0x300
@@ -608,7 +600,7 @@ if not %lastline%<=%TSLINES% && set lastline=%TSLINES%
 if not %gotoline%<=%lastline% && set gotoline=%lastline%
 endlocal && set gotoline=%gotoline% && set lastline=%lastline%
 goto :eof
-
+::
 :readline
 raw cat --skip=%skip% --locate=%TSEOL% --number=1 %FILE% > nul &; set /A EOLend=%?%+%EOLlen% &; raw cat --locate=%TSEOL% --length=%EOLend% %FILE% > nul &; set /a endnum=%@retval%
 if not exist endnum && endlocal && set "message=Abort: general error in %0 (not exist 'endnum')" && goto :eof
@@ -630,27 +622,21 @@ if %linelen%>=1 if not %linelen2%<=%echonumL% || if exist echonum && echo -n -e 
 if not %linelen2%<=%echonumL% && set hproxy=0 && calc %linelen2% % %LINELEN% &; set /a hproxy=%@retval%
 if %linelen2%<=%echonumL% && set hproxy=5
 setlocal && call :Fn.4 &; endlocal && set h=%h%
-#temporarysolutionI#
 if exist @uefi && if %grphmode%<=0xFF && set h=%hproxy%
-#temporarysolutionII#
 if not %h%==0 && echo
 setlocal && call :Fn.4 &; endlocal && set /a v=%v% &; if exist @uefi && if %grphmode%<=0xFF && set v=%vproxy%
 set /a lineleft=%PAGEEND%-1-%v%
 if not %endnum%>=%lastline% && set /A skip=%EOLbegin%+%linelen%+%EOLlen% && set endnum= && set EOLbegin= && set beginnum= && set linelen= && set h= && set numtabs= && set linelen2= && set tabslen= && set v0= && set vproxy= && set hproxy= && set h= && set echonum= && set echonumL= && goto :readline
 goto :eof
-
+::
 :pagestat
 #-#+ not used: GRUB, GRUBVER, columns and counted chars (see PAGESTAT.G4B v0.2)
 #-# In grub4efi linelen=100, pagelen 29 er 30??? To get 'graphicsmode > nul ;; set /a GRMD=%@retval%' pager must be off is, required, otherwise vboprobe-info waiting for Q
 setlocal && set * && set grphmode=%grphmode%
-#Nosolution_v0.8ZC_VBox#if exist @uefi && if %grphmode%<=0xFF && endlocal && set PAGELEN=25 && set LINELEN=80 && set v=0 && goto :eof
-#OKEv0.8ZE_VBox#
 if exist @uefi && call :checkFn.4 &; endlocal && set PAGELEN=%pagelen% && set LINELEN=%linelen% && set TABLEN=%tablen% && set v=0 && goto :eof
-#ORG#if exist @uefi && if %grphmode%<=0xFF && endlocal && set PAGELEN=27 && set LINELEN=128 && set v=0 && goto :eof
 setlocal && call :Fn.4 &; endlocal && set v=%v%
 if %v%>=1 && set /a v=%v%-1
 set /a v0=%v% && set vstart=%v% && set vorg=%v% && set v=
-#NOTifTEXTmodeisworkingagain!#if exist @uefi &; set vstart=28
 call Fn.5 0 %vstart%
 set /a pagelen=%vstart%
 call :pagelen
@@ -666,21 +652,21 @@ if %vstart%>=1 && set /a vstart=%vstart%-1 ! if %vstart%<=-1 && set vstart=0
 call Fn.5 0 %vstart%
 endlocal && set LINELEN=%linelen% && set PAGELEN=%pagelen% && set v=%vstart% && set TABLEN=%tablen%
 goto :eof
-
+::
 :linelen
 echo -n -e \x20
 setlocal && call :Fn.4 &; endlocal && set v=%v%
 if %vstart%==%v% && set /a linelen=%linelen%+1 && goto :linelen
 set v=
 goto :eof
-
+::
 :pagelen
 setlocal && call :Fn.4 &; endlocal && set v0=%v%
 echo -e \x20
 setlocal && call :Fn.4 &; endlocal && set v1=%v%
 if not %v0%==%v1% && set /a pagelen=%pagelen%+1 && goto :pagelen
 goto :eof
-
+::
 :tablen
 setlocal && call :Fn.4 &; endlocal && set h0=%h% && set v0=%v%
 echo -e -n \t
@@ -690,7 +676,7 @@ call :Fn.4
 if %tablen%==0 && if %v%<=20 && echo v=%v% h=%h% && set v= && set h= && goto :tablen
 set h= && set v=
 goto :eof
-
+::
 :checkFn.4
 setlocal
 clear
@@ -723,7 +709,7 @@ set pagelen=%c%
 clear
 endlocal && set pagelen=%pagelen% && set collumn=%collumn% && set linelen=%linelen% && set tablen=%tablen% && set checkFn4=Y
 goto :eof
-
+::
 :numecho
 if %endnum%<=0 && set echonum= && set endnum= && goto :eof
 if %endnum%<=9 && set echonum=000%endnum% && goto :eof
@@ -731,17 +717,17 @@ if %endnum%<=99 && set echonum=00%endnum% && goto :eof
 if %endnum%<=999 && set echonum=0%endnum% && goto :eof
 set echonum=%endnum%
 goto :eof
-
+::
 :Fn.4
 #-#+ call Fn.4 - h is max 0-255 chars per line, position (h,v) (0,0) is 0 and (0,1) is 256 (in grub4efi text mode 20221128+30: 16 & h max +64, on some line h is always the same ?!)
 call Fn.4 ;; set /A h=%@retval% > nul ;; set /a v=%h%>>8 > nul ;; set /a h=%h%&0xff > nul
 goto :eof
-
+::
 :Fn.5
 #-#+ call Fn.5 h v (watch: echo -P:yyxx - also newer version in hex, up to 0xFF !)
 call Fn.5 %~1 %~2
 goto :eof
-
+::
 :Fn11
 setlocal && set * && set mdwork=%mdwork%
 set cat=N
@@ -793,14 +779,14 @@ call set "ARG2=%^ARG12:~%ARG1len%%%"
 call Fn.11 "%ARG1%" "%ARG2%" && set result=1 ! set result=0
 endlocal && set result=%result%
 goto :eof
-
+::
 :verify
 set found= && set foundx=
 raw cat --skip=%skip% --locate=\x5C\x78%char:~2% --length=%length% (md)%mdwork%+2 > nul && set /A char=%char%+2 > nul && set foundx=Y ! if not %ARG12len%<=510 && raw cat --skip=%skip% --locate=\x5C\x78%char:~2% --length=%length2% (md)0x302+2 > nul && set /A char=%char%+2 > nul && set foundx=Y
 if %c%==00 &; if not %foundx%==Y && goto :eof ! if %char%<=0xFD && goto :verify ! set char=NA && set "message=VERIFY: failed" && goto :eof
 if not %foundx%==Y &; raw cat --skip=%skip% --locate=\x%char:~2% --length=%length% (md)%mdwork%+4 > nul && set /A char=%char%+2 > nul && set found=Y ! if not %ARG12len%<=510 && raw cat --skip=%skip% --locate=\x%char:~2% --length=%length2% (md)0x302+2 > nul && set /A char=%char%+2 > nul && set found=Y
 if not %found%==Y && if not %foundx%==Y && goto :eof ! if %char%<=0xFD && goto :verify ! set char=NA && set "message=VERIFY: failed" && goto :eof
-
+::
 :parseswitches
 set "badARG=%~1"
 set "lastchar=%badARG:~-1,1%"
@@ -814,7 +800,7 @@ if exist badARG && goto :eof
 if "%~1"=="" && set ARG= && set count= && set message= && set lastchar= && goto :eof
 set lastchar= && set "ARG=%~1"
 if /i "%ARG:~0,6%"=="COUNT:" && set "COUNT=%ARG:~6%" ! if /i "%ARG:~0,7%"=="/COUNT:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,7%"=="COUNTc:" && set "COUNT=%ARG:~7%" ! if /i "%ARG:~0,8%"=="/COUNTc:" && set "COUNT=%ARG:~8%"
-if /i "%ARG:~0,6%"=="COUNT:" && if exist COUNT && set i=i && shift && goto :parseswitches ! if /i "%ARG:~0,6%"=="COUNTc" && set i= && shift && goto :parseswitches ! if not "%ARG:~0,1%"=="/" && if /i "%ARG:~0,7%"=="/COUNTc" && set i= && shift && goto :parseswitches ! if "%ARG:~0,1%"=="/" && if /i "%ARG:~1,6%"=="COUNTc" && set i= && shift && goto :parseswitches
+if /i "%ARG:~0,6%"=="COUNT:" && if exist COUNT && set i=i && shift && goto :parseswitches ! if /i "%ARG:~0,7%"=="/COUNT:" && if exist COUNT && set i=i && shift && goto :parseswitches ! if /i "%ARG:~0,6%"=="COUNTc" && set i= && shift && goto :parseswitches ! if not "%ARG:~0,1%"=="/" && if /i "%ARG:~0,7%"=="/COUNTc" && set i= && shift && goto :parseswitches ! if "%ARG:~0,1%"=="/" && if /i "%ARG:~1,6%"=="COUNTc" && set i= && shift && goto :parseswitches
 if /i "%ARG:~0,8%"=="/MDBASE:" && set "MDBASE=%ARG:~8%" ! if /i "%ARG:~0,7%"=="MDBASE:" && set "MDBASE=%ARG:~7%"
 if /i "%ARG%"=="/Q" && set q=q && set "NULL= > nul"
 if /i "%ARG%"=="/P" && set PRINT=Y && pager off ! if /i "%ARG%"=="P" && set PRINT=Y && pager off
@@ -835,9 +821,9 @@ if /i "%ARG:~0,5%"=="/RNB:" && if not "%ARG:~5%"=="" && set /a "roomNB=%ARG:~5%"
 if /i "%ARG:~0,5%"=="/ONB:" && if not "%ARG:~5%"=="" && set /a "offsetNB=%ARG:~5%" && set "NULL= > nul" ! if /i "%ARG:~0,4%"=="ONB:" && if not "%ARG:~4%"=="" && set /a "offsetNB=%ARG:~4%" && set "NULL= > nul"
 shift
 goto :parseswitches
-
+::
 :help
-echo -e Help\t  TEXTSTAT.G4B v0.8 (20230120), by deomsh (idea P-switch: steve6375)
+echo -e Help\t  TEXTSTAT.G4B v0.8.1 (20250802), by deomsh (idea P-switch: steve6375)
 echo -e Use \t  TEXTSTAT.G4B ["]FILE["] [switches]
 echo -e Switches  ["][/]COUNT[c]:phrase["] to count 'phrase'; COUNTc: case-sensitive\n\t  ["][/][N]A:phraseA["] [not] count if 'phrase' is just after phraseA\n\t  [/]R[N]A:n [not] near-range for end of phraseA before 'phrase', n>=1\n\t  [/]O[N]A:n offset between end of phraseA and begin of 'phrase', n>=1\n\t  ["][/][N]B:phraseB["] [not] count if 'phrase' is just before phraseB\n\t  [/]R[N]B:n [not] near-range for start of phraseB after 'phrase', n>=1\n\t  [/]O[N]B:n offset between start of phraseB and end of 'phrase', n>=1\n\t  [/]P to print counted 'phrase'-lines to screen (not with /Q)\n\t  [/]R to read FILE. Screen not filled out, only full lines printed\n\t  [/]R:s to start reading at line 's' (if 's' too high, last line only)\n\t  [/]R:s-n or [/R]:s:n to read range: start line 's' - end line 'n'\n\t  /V to get als 'counts' as output in variables too\n\t  /Q quiet operation (includes /V) + [/]COUNT[c]:phrase 'result' only\n\t  [/]MDBASE:startsector - >=0x3000 (default), max 4096 sectors used
 echo -e Remarks\t  FILE must be a textfile, max 2097152 bytes (2 MB/ 4096 sectors)\n\t  Switches are not case-sensitive and order is free (but after FILE)\n\t  Switches /P and /R[:s[-|:n]] do not support mixed EndOfLine markers\n\t  /R[:s[-|:n]] overrules /COUNT[c]:phrase and /P and sets /Q to /V
@@ -845,7 +831,6 @@ set "t=\t  " && set "resetcol=$[]          "
 :messagehelp
 echo -e %t%'phrase' max 48 chars, use double-quotes IF containing spaces or '='
 echo -e %t%'phraseA' 'phraseB' max 16 chars, use double-quotes if needed
-#NONEED:BUGfound#echo -e %resetcol%Double-qoute char: \\x22,\ '\x25': \\x25 '=': \\x3D, space: \\x20 (if needed)
 echo -e %resetcol%Double-qoute char: use \\x22,\ for '\x25' use \\x25, space: \\x20 if needed
 echo %resetcol%EndOfLine markers at begin OR end of 'phrase': \x0A, \x0D\x0A or \x0D
 echo %resetcol%For counting '\' use double '\\', count \xASCII: \\x.. or \x5C\x78..
