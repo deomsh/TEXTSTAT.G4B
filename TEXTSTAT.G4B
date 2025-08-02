@@ -62,7 +62,6 @@ raw dd if=%filename% of=%FILE% bs=1 count=%filelen% > nul
 call :CntZeros %FILE% "dos" %filelen% &; if exist result && set zeros=%result% && set result=
 if %zeros%>=1 && set "message1=Abort: binary File, contains %zeros% zeros before last EndOfLine marker" && goto :endlocal
 call :CntLine %FILE% "dos" %filelen% &; if exist result && set dos=%result% && set result=
-echo call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
 call :CntLine %FILE% "unix" %filelen% &; if exist result && set unix=%result% && set result=
 call :CntLine %FILE% "mac" %filelen% &; if exist result && set mac=%result% && set result=
 if %dos%>=1 && if %unix%==%dos% && if %unix%==%mac% && set texttype=dos && set TSLINES=%dos% && set TSTXTYPE=MSDOS && set TSEOL=\x0D\x0A && echo Number of Lines    %dos%%%NULL% && echo EndOfLine marker   CR+LF (0D0A)%NULL% &; if %zeros%==0 && echo Text File Type     MS-DOS%NULL%
